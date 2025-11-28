@@ -152,6 +152,7 @@ body {
   padding: 4px 10px;
   font-size: 11px;
   border-radius: 6px;
+  gap: 4px;
 }
 
 .btn-primary {
@@ -313,6 +314,7 @@ body {
 .editor-content {
   flex: 1;
   overflow: hidden;
+  position: relative;
 }
 
 /* Runner */
@@ -581,10 +583,6 @@ body {
   position: relative;
   overflow: hidden;
   cursor: grab;
-}
-
-.canvas-container:active {
-  cursor: grabbing;
 }
 
 .canvas-container canvas {

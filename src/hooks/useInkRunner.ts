@@ -9,6 +9,8 @@ const INITIAL: StoryState = {
   pendingLines: [],
   choices: [],
   currentKnot: null,
+  currentLine: null,
+  currentText: null,
   variables: {},
   isEnded: false,
   error: null,
@@ -43,6 +45,26 @@ function getCurrentKnot(story: Story): string | null {
   return null;
 }
 
+function getSourceLine(story: Story): number | null {
+  try {
+    // Access inkjs debug metadata for source line number
+    const storyInternal = story as unknown as {
+      state?: {
+        currentPointer?: {
+          Resolve?: () => { debugMetadata?: { sourceLine?: number } } | null
+        }
+      }
+    };
+    const resolved = storyInternal.state?.currentPointer?.Resolve?.();
+    if (resolved?.debugMetadata?.sourceLine) {
+      return resolved.debugMetadata.sourceLine;
+    }
+  } catch {
+    // ignore
+  }
+  return null;
+}
+
 export function useInkRunner() {
   const [state, setState] = useState<StoryState>(INITIAL);
   const storyRef = useRef<Story | null>(null);
@@ -70,6 +92,8 @@ export function useInkRunner() {
           lines: [...s.lines, line],
           pendingLines: remaining,
           currentKnot: line.knot || s.currentKnot,
+          currentLine: line.sourceLine,
+          currentText: line.text,
         };
       });
     }, LINE_DELAY_MS);
@@ -100,12 +124,14 @@ export function useInkRunner() {
       const newLines: StoryLine[] = [];
 
       while (story.canContinue) {
-        const text = story.Continue();
+        // Capture knot and source line BEFORE Continue() to get correct source location
         const knot = getCurrentKnot(story);
+        const sourceLine = getSourceLine(story);
+        const text = story.Continue();
 
         if (text?.trim()) {
           text.split('\n').filter(Boolean).forEach(line => {
-            newLines.push({ text: line.trim(), knot });
+            newLines.push({ text: line.trim(), knot, sourceLine });
           });
         }
       }
@@ -137,6 +163,8 @@ export function useInkRunner() {
         lines: [...s.lines, line],
         pendingLines: remaining,
         currentKnot: line.knot || s.currentKnot,
+        currentLine: line.sourceLine,
+        currentText: line.text,
       };
     });
   }, [state.pendingLines]);

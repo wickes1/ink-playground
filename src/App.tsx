@@ -8,6 +8,25 @@ import { useInk } from './hooks/useInk';
 import { useInkRunner } from './hooks/useInkRunner';
 import { EXAMPLES, RESIZABLE_HANDLE_STYLE, RESIZABLE_HANDLE_CLASS } from './constants';
 
+function updatePositionTag(code: string, knotName: string, x: number, y: number): string {
+  const lines = code.split('\n');
+  const knotRegex = new RegExp(`^===\\s*${knotName}\\s*===?$`);
+  const posTagRegex = /^#\s*position:\s*-?\d+\s*,\s*-?\d+/;
+
+  for (let i = 0; i < lines.length; i++) {
+    if (knotRegex.test(lines[i])) {
+      const newTag = `# position: ${x}, ${y}`;
+      if (i + 1 < lines.length && posTagRegex.test(lines[i + 1])) {
+        lines[i + 1] = newTag;
+      } else {
+        lines.splice(i + 1, 0, newTag);
+      }
+      break;
+    }
+  }
+  return lines.join('\n');
+}
+
 export default function App() {
   const [code, setCode] = useState('');
   const [isRunning, setIsRunning] = useState(false);
@@ -19,6 +38,20 @@ export default function App() {
 
   const handleNodeClick = useCallback((knotName: string) => {
     editorRef.current?.goToKnot(knotName);
+  }, []);
+
+  const handleNodePositionChange = useCallback((knotName: string, x: number, y: number) => {
+    setCode(prevCode => updatePositionTag(prevCode, knotName, x, y));
+  }, []);
+
+  const handleAutoLayout = useCallback((positions: Map<string, { x: number; y: number }>) => {
+    setCode(prevCode => {
+      let newCode = prevCode;
+      for (const [knotName, pos] of positions) {
+        newCode = updatePositionTag(newCode, knotName, Math.round(pos.x), Math.round(pos.y));
+      }
+      return newCode;
+    });
   }, []);
 
   const handleRun = () => {
@@ -117,7 +150,7 @@ export default function App() {
               <Editor ref={editorRef} value={code} onChange={handleCodeChange} onRun={handleRun} />
             </Resizable>
             <div className="flex-1 h-full overflow-hidden bg-slate-50">
-              <NodeGraph script={code} onNodeClick={handleNodeClick} activeKnot={state.currentKnot} />
+              <NodeGraph script={code} onNodeClick={handleNodeClick} onNodePositionChange={handleNodePositionChange} onAutoLayout={handleAutoLayout} activeKnot={state.currentKnot} />
             </div>
           </div>
         ) : (
@@ -141,10 +174,10 @@ export default function App() {
                   handleClasses={{ bottom: RESIZABLE_HANDLE_CLASS.horizontal }}
                   className="flex flex-col border-b border-slate-200"
                 >
-                  <Editor ref={editorRef} value={code} onChange={handleCodeChange} onRun={handleRestart} activeKnot={state.currentKnot} hasUnsavedChanges={hasUnsavedChanges} />
+                  <Editor ref={editorRef} value={code} onChange={handleCodeChange} onRun={handleRestart} activeKnot={state.currentKnot} activeLine={state.currentLine} activeText={state.currentText} hasUnsavedChanges={hasUnsavedChanges} />
                 </Resizable>
                 <div className="flex-1 overflow-hidden bg-slate-50">
-                  <NodeGraph script={code} onNodeClick={handleNodeClick} activeKnot={state.currentKnot} />
+                  <NodeGraph script={code} onNodeClick={handleNodeClick} onNodePositionChange={handleNodePositionChange} onAutoLayout={handleAutoLayout} activeKnot={state.currentKnot} />
                 </div>
               </div>
             </Resizable>

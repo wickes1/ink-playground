@@ -9,6 +9,8 @@ interface Props {
   onChange: (value: string) => void;
   onRun: () => void;
   activeKnot?: string | null;
+  activeLine?: number | null;
+  activeText?: string | null;
   hasUnsavedChanges?: boolean;
 }
 
@@ -64,7 +66,7 @@ function setupInkLanguage(monaco: Monaco) {
 }
 
 export const Editor = forwardRef<EditorHandle, Props>(function Editor(
-  { value, onChange, onRun, activeKnot, hasUnsavedChanges = false },
+  { value, onChange, onRun, activeKnot, activeLine, activeText, hasUnsavedChanges = false },
   ref
 ) {
   const editorRef = useRef<MonacoEditor | null>(null);
@@ -104,11 +106,14 @@ export const Editor = forwardRef<EditorHandle, Props>(function Editor(
     return () => window.removeEventListener('keydown', onKey);
   }, [onRun]);
 
-  // Highlight and scroll to active knot during playback
+  // Highlight and scroll to active line during playback
   useEffect(() => {
     const editor = editorRef.current;
-    if (!editor || !activeKnot) {
-      // Clear decorations if no active knot
+    const hasActiveLine = activeLine !== null && activeLine !== undefined;
+    const hasActiveText = activeText !== null && activeText !== undefined && activeText.trim() !== '';
+
+    if (!editor || (!hasActiveLine && !hasActiveText && !activeKnot)) {
+      // Clear decorations if nothing active
       if (editor && decorationsRef.current.length > 0) {
         decorationsRef.current = editor.deltaDecorations(decorationsRef.current, []);
       }
@@ -118,36 +123,57 @@ export const Editor = forwardRef<EditorHandle, Props>(function Editor(
     const model = editor.getModel();
     if (!model) return;
 
-    const knotRegex = new RegExp(`^===\\s*${activeKnot}\\s*===?`);
+    let targetLine: number | null = null;
     const lines = model.getLinesContent();
 
-    for (let i = 0; i < lines.length; i++) {
-      if (knotRegex.test(lines[i])) {
-        const lineNumber = i + 1;
-
-        // Scroll to the knot line
-        editor.revealLineInCenter(lineNumber);
-
-        // Add decoration for the active knot line
-        decorationsRef.current = editor.deltaDecorations(decorationsRef.current, [
-          {
-            range: {
-              startLineNumber: lineNumber,
-              startColumn: 1,
-              endLineNumber: lineNumber,
-              endColumn: model.getLineMaxColumn(lineNumber),
-            },
-            options: {
-              isWholeLine: true,
-              className: 'active-knot-line',
-              glyphMarginClassName: 'active-knot-glyph',
-            },
-          },
-        ]);
-        break;
+    // Priority 1: Use precise line number from inkjs debug metadata
+    if (hasActiveLine) {
+      targetLine = activeLine;
+    }
+    // Priority 2: Search for the output text in the source code
+    else if (hasActiveText) {
+      const searchText = activeText.trim();
+      for (let i = 0; i < lines.length; i++) {
+        // Check if the line contains the output text (ignoring leading/trailing whitespace)
+        if (lines[i].trim().includes(searchText) || lines[i].includes(searchText)) {
+          targetLine = i + 1;
+          break;
+        }
       }
     }
-  }, [activeKnot]);
+    // Priority 3: Fall back to finding the knot definition line
+    if (!targetLine && activeKnot) {
+      const knotRegex = new RegExp(`^===\\s*${activeKnot}\\s*===?`);
+      for (let i = 0; i < lines.length; i++) {
+        if (knotRegex.test(lines[i])) {
+          targetLine = i + 1;
+          break;
+        }
+      }
+    }
+
+    if (targetLine && targetLine <= model.getLineCount()) {
+      // Scroll to the target line
+      editor.revealLineInCenter(targetLine);
+
+      // Add decoration for the active line
+      decorationsRef.current = editor.deltaDecorations(decorationsRef.current, [
+        {
+          range: {
+            startLineNumber: targetLine,
+            startColumn: 1,
+            endLineNumber: targetLine,
+            endColumn: model.getLineMaxColumn(targetLine),
+          },
+          options: {
+            isWholeLine: true,
+            className: 'active-knot-line',
+            glyphMarginClassName: 'active-knot-glyph',
+          },
+        },
+      ]);
+    }
+  }, [activeLine, activeText, activeKnot]);
 
   return (
     <div className="editor">
@@ -179,7 +205,13 @@ export const Editor = forwardRef<EditorHandle, Props>(function Editor(
             lineNumbers: 'on',
             folding: false,
             glyphMargin: false,
-            automaticLayout: true
+            automaticLayout: true,
+            find: {
+              addExtraSpaceOnTop: true,
+              autoFindInSelection: 'never',
+              seedSearchStringFromSelection: 'selection'
+            },
+            fixedOverflowWidgets: true
           }}
         />
       </div>
