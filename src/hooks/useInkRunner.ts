@@ -123,15 +123,23 @@ export function useInkRunner() {
     try {
       const newLines: StoryLine[] = [];
 
+      let currentKnot: string | null = null;
+
       while (story.canContinue) {
-        // Capture knot and source line BEFORE Continue() to get correct source location
+        const text = story.Continue();
+
+        // Capture knot and source line AFTER Continue()
         const knot = getCurrentKnot(story);
         const sourceLine = getSourceLine(story);
-        const text = story.Continue();
+
+        // Update current knot if we got a valid one (not null and not numeric index)
+        if (knot && !/^\d+$/.test(knot)) {
+          currentKnot = knot;
+        }
 
         if (text?.trim()) {
           text.split('\n').filter(Boolean).forEach(line => {
-            newLines.push({ text: line.trim(), knot, sourceLine });
+            newLines.push({ text: line.trim(), knot: currentKnot, sourceLine });
           });
         }
       }
