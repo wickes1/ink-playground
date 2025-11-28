@@ -3,6 +3,7 @@
 -> start
 
 === start ===
+# position: 100, 80
 Hello, world!
 
 This is your first Ink story.
@@ -15,6 +16,7 @@ This is your first Ink story.
     -> continue
 
 === continue ===
+# position: 280, 80
 And now the story continues...
 
 THE END

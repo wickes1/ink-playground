@@ -3,6 +3,7 @@
 -> start
 
 === start ===
+# position: 100, 80
 Welcome to the Castle of Mysteries!
 
 You are standing in the grand entrance hall.
@@ -15,6 +16,7 @@ You are standing in the grand entrance hall.
     -> dungeon
 
 === library ===
+# position: 280, 80
 You enter a vast library filled with ancient books.
 
 = shelves
@@ -43,6 +45,7 @@ You found the legendary treasure!
 -> final
 
 === throne_room ===
+# position: 280, 180
 The throne room is magnificent with golden decorations.
 
 * [Sit on the throne]
@@ -56,6 +59,7 @@ The throne room is magnificent with golden decorations.
     -> start
 
 === dungeon ===
+# position: 280, 280
 The dungeon is dark and damp.
 
 * [Search the cells]
@@ -69,6 +73,7 @@ The dungeon is dark and damp.
     -> start
 
 === final ===
+# position: 460, 580
 Your exploration of the castle is complete!
 
 THE END
