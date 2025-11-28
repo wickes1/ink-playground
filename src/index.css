@@ -165,13 +165,16 @@ body {
   border-color: #1e293b;
 }
 
+.btn-control {
+  width: 72px;
+  justify-content: center;
+  font-weight: 600;
+}
+
 .btn-run {
   background: var(--color-success);
   border-color: var(--color-success);
   color: white;
-  min-width: 80px;
-  justify-content: center;
-  font-weight: 600;
 }
 
 .btn-run:hover:not(:disabled) {
@@ -184,9 +187,6 @@ body {
   background: var(--color-error);
   border-color: var(--color-error);
   color: white;
-  min-width: 80px;
-  justify-content: center;
-  font-weight: 600;
 }
 
 .btn-stop:hover:not(:disabled) {

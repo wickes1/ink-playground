@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Resizable } from 're-resizable';
-import { Play, Square, RotateCcw } from 'lucide-react';
 import { Editor } from './components/Editor';
 import { Runner } from './components/Runner';
 import { NodeGraph } from './components/NodeGraph';
@@ -59,23 +58,18 @@ export default function App() {
 
         {/* Run/Stop Controls */}
         <div className="header-controls">
-          {!isRunning ? (
-            <button onClick={handleRun} disabled={isParsing || !code.trim()} className="btn btn-run">
-              <Play size={14} />
-              <span>Run</span>
+          {isRunning ? (
+            <button onClick={handleStop} className="btn btn-control btn-stop">
+              Stop
             </button>
           ) : (
-            <>
-              <button onClick={handleStop} className="btn btn-stop">
-                <Square size={14} />
-                <span>Stop</span>
-              </button>
-              <button onClick={handleRestart} className="btn">
-                <RotateCcw size={14} />
-                <span>Restart</span>
-              </button>
-            </>
+            <button onClick={handleRun} disabled={isParsing || !code.trim()} className="btn btn-control btn-run">
+              Start
+            </button>
           )}
+          <button onClick={handleRestart} disabled={!isRunning} className="btn btn-control">
+            Restart
+          </button>
         </div>
 
         <div className="header-right">
