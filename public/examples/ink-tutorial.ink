@@ -58,6 +58,7 @@ VAR current_time = morning
 // KNOT - Major story sections, defined with ===
 // ----------------------------------------------------------------------------
 === introduction ===
+# position: 100, 80
 
 // LINE TAGS - Metadata attached to specific lines
 Welcome to the world of Ink! # tutorial_start # mood:excited
@@ -66,7 +67,7 @@ Welcome to the world of Ink! # tutorial_start # mood:excited
 Your name is {player_name} and you have {health} health points.
 
 // CONDITIONAL TEXT - Text that changes based on conditions
-You are currently feeling {mood > 0: quite happy|{mood < 0: a bit down|neutral}}.
+You are currently feeling {mood > 0: quite happy|mood < 0: a bit down|neutral}.
 
 * [Begin the adventure] -> tavern
 * [Learn about the author] -> about
@@ -75,6 +76,7 @@ You are currently feeling {mood > 0: quite happy|{mood < 0: a bit down|neutral}}
 // SIMPLE KNOT WITH DIVERTS
 // ----------------------------------------------------------------------------
 === about ===
+# position: 280, 180
 This tutorial was created to demonstrate ink's features.
 -> introduction
 
@@ -82,6 +84,7 @@ This tutorial was created to demonstrate ink's features.
 // KNOT WITH STITCHES - Sub-sections within a knot
 // ----------------------------------------------------------------------------
 === tavern ===
+# position: 280, 80
 
 // STITCH - Sub-section defined with single =
 = entrance
@@ -130,6 +133,7 @@ The barkeep notices you and <>
 // WEAVE - Branching and gathering without explicit knots
 // ----------------------------------------------------------------------------
 === bar_conversation ===
+# position: 460, 280
 
 "What'll it be?" the barkeep asks. # speaker:Barkeep
 
@@ -175,6 +179,7 @@ The barkeep notices you and <>
 // CONDITIONAL LOGIC AND FUNCTIONS
 // ----------------------------------------------------------------------------
 === stranger_conversation ===
+# position: 460, 380
 
 // CONDITIONAL BLOCKS - if/else logic
 {
@@ -195,6 +200,7 @@ The barkeep notices you and <>
     -> tavern.tavern_choices
 
 === stranger_deal ===
+# position: 640, 580
 
 // SWITCH STATEMENT - Multiple condition checks
 { gold:
@@ -216,6 +222,7 @@ The barkeep notices you and <>
 // TUNNELS - Reusable story segments that return to caller
 // ----------------------------------------------------------------------------
 === cave ===
+# position: 640, 380
 
 You venture into the dark cave.
 
@@ -239,6 +246,7 @@ You exit the cave.
 
 // TUNNEL DEFINITION - Ends with ->-> to return
 === describe_environment ===
+# position: 820, 380
 // SHUFFLE - Random selection each time
 The cave is {~damp and cold|eerily silent|filled with strange echoes}.
 // CYCLE - Loops through options
@@ -246,12 +254,14 @@ You hear {&dripping water|distant rumbling|your own heartbeat}.
 ->->
 
 === take_sword ===
+# position: 1000, 380
 You reach out and grasp the ancient blade.
 ~ has_sword = true
 ~ mood = mood + 10
 ->->
 
 === check_health ===
+# position: 1180, 380
 // CONDITIONAL RETURN - Different outcomes based on state
 { health < 50:
     You feel weak but determined.
@@ -302,6 +312,7 @@ You reach out and grasp the ancient blade.
 // THREADS - Parallel content composition
 // ----------------------------------------------------------------------------
 === ending ===
+# position: 460, 480
 
 // THREAD - <- merges content from another knot
 <- describe_final_state
@@ -310,6 +321,7 @@ You reach out and grasp the ancient blade.
 -> DONE
 
 === describe_final_state ===
+# position: 1360, 380
 // ONCE-ONLY ALTERNATIVE - Each item shown once, then nothing
 {!Your adventure concludes.|The journey ends here.|}
 
@@ -325,6 +337,7 @@ You finish your adventure feeling {describe_mood()}.
 -> DONE
 
 === credits ===
+# position: 1540, 380
 * [View your stats]
     // PRINT VARIABLES
     Final Stats:
@@ -350,6 +363,7 @@ You finish your adventure feeling {describe_mood()}.
 -> DONE
 
 === final_choice ===
+# position: 1720, 380
 
 // TURN COUNTING - Check how many turns since visiting a knot
 { TURNS_SINCE(-> introduction) > 5:
@@ -369,6 +383,7 @@ Thank you for playing!
 // ADVANCED: LABELED CHOICES AND GATHERS
 // ----------------------------------------------------------------------------
 === demo_labels ===
+# position: 1900, 380
 
 // LABELED GATHER - Can be referenced later
 - (start)
@@ -409,6 +424,7 @@ Something happens...
 // ADVANCED: LIST OPERATIONS
 // ----------------------------------------------------------------------------
 === demo_lists ===
+# position: 2080, 380
 
 // LIST VALUE ASSIGNMENT
 ~ front_door = locked

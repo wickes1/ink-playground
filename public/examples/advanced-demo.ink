@@ -11,6 +11,7 @@ VAR monster_defeated = false
 -> character_creation
 
 === character_creation ===
+# position: 100, 80
 Welcome, {player_name}!
 
 Choose your character class:
@@ -35,6 +36,7 @@ Choose your character class:
     -> game_start
 
 === game_start ===
+# position: 280, 80
 Your stats: Strength {strength} \| Intelligence {intelligence} \| Luck {luck}
 
 You enter a mysterious dungeon.
@@ -42,6 +44,7 @@ You enter a mysterious dungeon.
 -> main_hall
 
 === main_hall ===
+# position: 460, 80
 You stand in a large hall with three doors.
 
 {has_key:
@@ -62,6 +65,7 @@ You stand in a large hall with three doors.
     -> right_room
 
 === search_hall ===
+# position: 640, 80
 You search carefully...
 
 {luck >= 6:
@@ -73,6 +77,7 @@ You search carefully...
 -> main_hall
 
 === left_room ===
+# position: 640, 180
 {strength >= 6:
     You force open the heavy door.
     Inside is a fierce monster!
@@ -83,6 +88,7 @@ You search carefully...
 }
 
 === fight_monster ===
+# position: 820, 280
 {monster_defeated:
     The room is empty now.
     -> main_hall
@@ -103,6 +109,7 @@ A terrifying creature blocks your path!
     -> main_hall
 
 === middle_room ===
+# position: 640, 280
 {intelligence >= 6:
     You solve the puzzle lock and enter.
     Inside is a library with ancient knowledge.
@@ -120,6 +127,7 @@ A terrifying creature blocks your path!
 }
 
 === right_room ===
+# position: 640, 380
 {has_key:
     You use the golden key to unlock the door.
     -> treasure_room
@@ -129,6 +137,7 @@ A terrifying creature blocks your path!
 }
 
 === treasure_room ===
+# position: 820, 480
 You found the legendary treasure chamber!
 
 Your adventure is complete!

@@ -7,6 +7,7 @@ VAR sword = false
 -> start
 
 === start ===
+# position: 100, 80
 You are a brave adventurer.
 
 Health: {health} \| Gold: {gold} \| Has Sword: {sword}
@@ -37,6 +38,7 @@ Health: {health} \| Gold: {gold} \| Has Sword: {sword}
     -> checkpoint
 
 === checkpoint ===
+# position: 280, 80
 Health: {health} \| Gold: {gold} \| Has Sword: {sword}
 
 {sword:
@@ -49,6 +51,7 @@ Health: {health} \| Gold: {gold} \| Has Sword: {sword}
     -> battle
 
 === battle ===
+# position: 460, 80
 You encounter a fierce monster!
 
 {sword:
@@ -74,10 +77,12 @@ You encounter a fierce monster!
     -> victory
 
 === victory ===
+# position: 640, 80
 You survived the encounter!
 Final Stats - Health: {health} \| Gold: {gold}
 -> END
 
 === defeat ===
+# position: 640, 180
 Game Over - You were defeated!
 -> END

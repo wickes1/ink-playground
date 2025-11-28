@@ -3,6 +3,7 @@
 -> start
 
 === start ===
+# position: 100, 80
 You stand at a crossroads in the forest.
 
 * [Go left]
@@ -16,6 +17,7 @@ You stand at a crossroads in the forest.
     -> home
 
 === waterfall ===
+# position: 280, 80
 The waterfall cascades down into a crystal-clear pool.
 
 * [Drink the water]
@@ -26,6 +28,7 @@ The waterfall cascades down into a crystal-clear pool.
     -> ending
 
 === cave ===
+# position: 280, 180
 The cave entrance is dark and mysterious.
 
 * [Enter the cave]
@@ -37,10 +40,12 @@ The cave entrance is dark and mysterious.
     -> ending
 
 === home ===
+# position: 280, 280
 You arrive safely back home.
 -> ending
 
 === ending ===
+# position: 460, 80
 Your adventure comes to an end.
 
 THE END
