@@ -105,7 +105,7 @@ export default function App() {
       <header className="header shrink-0">
         <div className="header-left">
           <span className="header-title">Ink Playground</span>
-          <span className="header-version">v0.1.0</span>
+          <span className="header-version">{__APP_VERSION__}</span>
         </div>
 
         <div className="header-controls">

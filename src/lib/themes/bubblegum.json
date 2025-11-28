@@ -1,0 +1,122 @@
+{
+  "name": "bubblegum",
+  "cssVars": {
+    "theme": {
+      "font-sans": "Poppins, sans-serif",
+      "font-mono": "Fira Code, monospace",
+      "radius": "0.4rem"
+    },
+    "light": {
+      "background": "oklch(0.9399 0.0203 345.6985)",
+      "background-secondary": "oklch(0.9498 0.0500 86.8891)",
+      "background-tertiary": "oklch(0.9195 0.0801 87.6670)",
+      "foreground": "oklch(0.4712 0 0)",
+      "foreground-secondary": "oklch(0.5795 0 0)",
+      "foreground-muted": "oklch(0.6500 0 0)",
+      "border": "oklch(0.6209 0.1801 348.1385)",
+      "border-dark": "oklch(0.7002 0.1597 350.7532)",
+      "accent": "oklch(0.6209 0.1801 348.1385)",
+      "accent-hover": "oklch(0.7002 0.1597 350.7532)",
+      "accent-light": "oklch(0.8228 0.1095 346.0184)",
+      "success": "oklch(0.6500 0.1500 145)",
+      "success-hover": "oklch(0.5500 0.1500 145)",
+      "success-bg": "oklch(0.9300 0.0500 145)",
+      "error": "oklch(0.7091 0.1697 21.9551)",
+      "error-hover": "oklch(0.6091 0.1697 21.9551)",
+      "error-bg": "oklch(0.9500 0.0400 21.9551)",
+      "warning": "oklch(0.7500 0.1500 70)",
+      "warning-bg": "oklch(0.9400 0.0600 70)"
+    },
+    "dark": {
+      "background": "oklch(0.2497 0.0305 234.1628)",
+      "background-secondary": "oklch(0.2902 0.0299 233.5352)",
+      "background-tertiary": "oklch(0.3093 0.0305 232.0027)",
+      "foreground": "oklch(0.9306 0.0197 349.0785)",
+      "foreground-secondary": "oklch(0.7794 0.0803 4.1330)",
+      "foreground-muted": "oklch(0.6500 0.0500 4)",
+      "border": "oklch(0.3907 0.0399 242.2181)",
+      "border-dark": "oklch(0.4500 0.0400 242)",
+      "accent": "oklch(0.9195 0.0801 87.6670)",
+      "accent-hover": "oklch(0.8500 0.0900 87.6670)",
+      "accent-light": "oklch(0.3500 0.0600 87.6670)",
+      "success": "oklch(0.6998 0.0896 201.8672)",
+      "success-hover": "oklch(0.7500 0.0900 201.8672)",
+      "success-bg": "oklch(0.3000 0.0400 201.8672)",
+      "error": "oklch(0.6702 0.1806 350.3599)",
+      "error-hover": "oklch(0.7500 0.1806 350.3599)",
+      "error-bg": "oklch(0.3000 0.0500 350.3599)",
+      "warning": "oklch(0.7500 0.1500 70)",
+      "warning-bg": "oklch(0.3000 0.0600 70)"
+    }
+  },
+  "editor": {
+    "light": {
+      "base": "vs",
+      "background": "#f0e0e4",
+      "lineHighlight": "#fdf1dc",
+      "lineNumber": "#c490a0",
+      "lineNumberActive": "#d55a8a",
+      "selection": "#f5d0dc",
+      "tokens": {
+        "keyword": { "foreground": "d55a8a", "fontStyle": "bold" },
+        "string": { "foreground": "6b8e23" },
+        "number": { "foreground": "9055a2" },
+        "comment": { "foreground": "a0a0a0", "fontStyle": "italic" },
+        "variable": { "foreground": "d4a017" }
+      }
+    },
+    "dark": {
+      "base": "vs-dark",
+      "background": "#2a2e42",
+      "lineHighlight": "#363a52",
+      "lineNumber": "#6a6e8a",
+      "lineNumberActive": "#c490a0",
+      "selection": "#484c6a",
+      "tokens": {
+        "keyword": { "foreground": "f0d080", "fontStyle": "bold" },
+        "string": { "foreground": "98d080" },
+        "number": { "foreground": "c4a0dc" },
+        "comment": { "foreground": "666a88", "fontStyle": "italic" },
+        "variable": { "foreground": "f0b0c0" }
+      }
+    }
+  },
+  "canvas": {
+    "light": {
+      "background": "#f0e0e4",
+      "grid": "#e8d0d8",
+      "nodeDefault": "#ffffff",
+      "nodeStart": "#fdf1dc",
+      "nodeActive": { "fill": "#fce8f0", "stroke": "#d55a8a" },
+      "nodeHover": { "fill": "#fff5e0", "stroke": "#d4a017" },
+      "nodeConnected": { "fill": "#fde0e8", "stroke": "#f0a0b8" },
+      "nodeBorder": "#e0c0c8",
+      "textDefault": "#504050",
+      "textActive": "#d55a8a",
+      "textHover": "#c08020",
+      "connectionDefault": "#d0a8b8",
+      "connectionHighlight": "#d55a8a",
+      "dotDefault": "#d0a8b8",
+      "dotActive": "#d55a8a",
+      "dotHover": "#d4a017"
+    },
+    "dark": {
+      "background": "#2a2e42",
+      "grid": "#363a52",
+      "nodeDefault": "#363a52",
+      "nodeStart": "#3a3050",
+      "nodeActive": { "fill": "#403050", "stroke": "#f0d080" },
+      "nodeHover": { "fill": "#404050", "stroke": "#c490a0" },
+      "nodeConnected": { "fill": "#403a58", "stroke": "#c490a0" },
+      "nodeBorder": "#505468",
+      "textDefault": "#c8c0d0",
+      "textActive": "#f0d080",
+      "textHover": "#f0b0c0",
+      "connectionDefault": "#606080",
+      "connectionHighlight": "#f0d080",
+      "dotDefault": "#606080",
+      "dotActive": "#f0d080",
+      "dotHover": "#f0b0c0"
+    }
+  }
+}

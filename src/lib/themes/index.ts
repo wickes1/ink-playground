@@ -1,6 +1,7 @@
 import defaultTheme from "./default.json";
 import vintagePaperTheme from "./vintage-paper.json";
 import oceanBreezeTheme from "./ocean-breeze.json";
+import bubblegumTheme from "./bubblegum.json";
 
 export interface EditorThemeColors {
   base: "vs" | "vs-dark";
@@ -76,41 +77,16 @@ export const AVAILABLE_THEMES: ThemeMetadata[] = [
     name: "Ocean Breeze",
     schema: oceanBreezeTheme as ThemeSchema,
   },
+  {
+    id: "bubblegum",
+    name: "Bubblegum",
+    schema: bubblegumTheme as ThemeSchema,
+  },
 ];
 
 export function getThemeById(id: string): ThemeMetadata | undefined {
   return AVAILABLE_THEMES.find((t) => t.id === id);
 }
-
-function parseColorValue(value: string): { colorFunction: string | null; rawValue: string } {
-  const match = value.match(/^(hsl|oklch|rgb|hwb|lab|lch)\((.*)\)$/);
-  if (match) {
-    return { colorFunction: match[1], rawValue: match[2] };
-  }
-  return { colorFunction: "hsl", rawValue: value };
-}
-
-const COLOR_VARS = [
-  "background",
-  "background-secondary",
-  "background-tertiary",
-  "foreground",
-  "foreground-secondary",
-  "foreground-muted",
-  "border",
-  "border-dark",
-  "accent",
-  "accent-hover",
-  "accent-light",
-  "success",
-  "success-hover",
-  "success-bg",
-  "error",
-  "error-hover",
-  "error-bg",
-  "warning",
-  "warning-bg",
-];
 
 export function applyTheme(themeMetadata: ThemeMetadata, isDark: boolean = false) {
   const root = document.documentElement;
@@ -129,15 +105,8 @@ export function applyTheme(themeMetadata: ThemeMetadata, isDark: boolean = false
 
   if (colors) {
     Object.entries(colors).forEach(([key, value]) => {
-      const { colorFunction, rawValue } = parseColorValue(value);
-
-      // Set raw value for @theme block
-      root.style.setProperty(`--${key}`, rawValue);
-
-      // For color variables, also set the final --color-* variable
-      if (COLOR_VARS.includes(key) && colorFunction) {
-        root.style.setProperty(`--color-${key}`, `${colorFunction}(${rawValue})`);
-      }
+      // Set the CSS variable directly - value includes color function (hsl/oklch/etc)
+      root.style.setProperty(`--${key}`, value);
     });
   }
 

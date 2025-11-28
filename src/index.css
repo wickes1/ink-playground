@@ -1,45 +1,71 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 /* Theme CSS Variables - mapped to Tailwind colors */
-@theme {
+@theme inline {
   /* Background colors */
-  --color-bg: hsl(var(--background, 0 0% 100%));
-  --color-bg-secondary: hsl(var(--background-secondary, 210 40% 98%));
-  --color-bg-tertiary: hsl(var(--background-tertiary, 210 40% 96%));
+  --color-bg: var(--background);
+  --color-bg-secondary: var(--background-secondary);
+  --color-bg-tertiary: var(--background-tertiary);
 
   /* Text colors */
-  --color-text: hsl(var(--foreground, 222 47% 11%));
-  --color-text-secondary: hsl(var(--foreground-secondary, 215 16% 47%));
-  --color-text-muted: hsl(var(--foreground-muted, 215 20% 65%));
+  --color-text: var(--foreground);
+  --color-text-secondary: var(--foreground-secondary);
+  --color-text-muted: var(--foreground-muted);
 
   /* Border colors */
-  --color-border: hsl(var(--border, 214 32% 91%));
-  --color-border-dark: hsl(var(--border-dark, 213 27% 84%));
+  --color-border: var(--border);
+  --color-border-dark: var(--border-dark);
 
   /* Accent colors */
-  --color-accent: hsl(var(--accent, 239 84% 67%));
-  --color-accent-hover: hsl(var(--accent-hover, 239 84% 57%));
-  --color-accent-light: hsl(var(--accent-light, 226 100% 94%));
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-light: var(--accent-light);
 
   /* Status colors */
-  --color-success: hsl(var(--success, 160 84% 39%));
-  --color-success-hover: hsl(var(--success-hover, 161 94% 30%));
-  --color-success-bg: hsl(var(--success-bg, 152 81% 96%));
+  --color-success: var(--success);
+  --color-success-hover: var(--success-hover);
+  --color-success-bg: var(--success-bg);
 
-  --color-error: hsl(var(--error, 0 84% 60%));
-  --color-error-hover: hsl(var(--error-hover, 0 72% 51%));
-  --color-error-bg: hsl(var(--error-bg, 0 86% 97%));
+  --color-error: var(--error);
+  --color-error-hover: var(--error-hover);
+  --color-error-bg: var(--error-bg);
 
-  --color-warning: hsl(var(--warning, 38 92% 50%));
-  --color-warning-bg: hsl(var(--warning-bg, 48 100% 96%));
+  --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
 
   /* Typography */
-  --font-family-sans: var(--font-sans, 'Inter', -apple-system, BlinkMacSystemFont, sans-serif);
-  --font-family-mono: var(--font-mono, 'JetBrains Mono', monospace);
+  --font-family-sans: var(--font-sans);
+  --font-family-mono: var(--font-mono);
 
   /* Radius */
-  --radius-base: var(--radius, 0.5rem);
+  --radius-base: var(--radius);
+}
+
+/* Default theme values */
+:root {
+  --background: hsl(0 0% 100%);
+  --background-secondary: hsl(210 40% 98%);
+  --background-tertiary: hsl(210 40% 96%);
+  --foreground: hsl(222 47% 11%);
+  --foreground-secondary: hsl(215 16% 47%);
+  --foreground-muted: hsl(215 20% 65%);
+  --border: hsl(214 32% 91%);
+  --border-dark: hsl(213 27% 84%);
+  --accent: hsl(239 84% 67%);
+  --accent-hover: hsl(239 84% 57%);
+  --accent-light: hsl(226 100% 94%);
+  --success: hsl(160 84% 39%);
+  --success-hover: hsl(161 94% 30%);
+  --success-bg: hsl(152 81% 96%);
+  --error: hsl(0 84% 60%);
+  --error-hover: hsl(0 72% 51%);
+  --error-bg: hsl(0 86% 97%);
+  --warning: hsl(38 92% 50%);
+  --warning-bg: hsl(48 100% 96%);
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --radius: 0.5rem;
 }
 
 /* Dark mode variant */
