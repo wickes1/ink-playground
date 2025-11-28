@@ -67,7 +67,7 @@ Welcome to the world of Ink! # tutorial_start # mood:excited
 Your name is {player_name} and you have {health} health points.
 
 // CONDITIONAL TEXT - Text that changes based on conditions
-You are currently feeling {mood > 0: quite happy|mood < 0: a bit down|neutral}.
+You are currently feeling {mood > 0: quite happy|{mood < 0: a bit down|neutral}}.
 
 * [Begin the adventure] -> tavern
 * [Learn about the author] -> about
