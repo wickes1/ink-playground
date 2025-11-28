@@ -5,11 +5,17 @@ import { execSync } from 'child_process';
 
 function getGitVersion(): string {
   try {
-    // Get tag if HEAD is tagged, otherwise get short commit hash
-    const tag = execSync('git describe --tags --exact-match 2>/dev/null || git describe --tags 2>/dev/null || git rev-parse --short HEAD', { encoding: 'utf-8' }).trim();
+    // 1. If HEAD is exactly on a tag, use the tag
+    const tag = execSync('git describe --tags --exact-match 2>/dev/null', { encoding: 'utf-8' }).trim();
     return tag;
   } catch {
-    return 'dev';
+    try {
+      // 2. Otherwise, use truncated commit SHA
+      const sha = execSync('git rev-parse --short HEAD', { encoding: 'utf-8' }).trim();
+      return sha;
+    } catch {
+      return 'dev';
+    }
   }
 }
 
