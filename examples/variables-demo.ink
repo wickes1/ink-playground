@@ -6,7 +6,7 @@ VAR sword = false
 
 You are a brave adventurer.
 
-Health: {health} | Gold: {gold} | Has Sword: {sword}
+Health: {health} \| Gold: {gold} \| Has Sword: {sword}
 
 * [Buy a sword (30 gold)]
     {gold >= 30:
@@ -34,7 +34,7 @@ Health: {health} | Gold: {gold} | Has Sword: {sword}
     -> checkpoint
 
 === checkpoint ===
-Health: {health} | Gold: {gold} | Has Sword: {sword}
+Health: {health} \| Gold: {gold} \| Has Sword: {sword}
 
 {sword:
     With your sword, you feel confident!
@@ -72,7 +72,7 @@ You encounter a fierce monster!
 
 === victory ===
 You survived the encounter!
-Final Stats - Health: {health} | Gold: {gold}
+Final Stats - Health: {health} \| Gold: {gold}
 -> END
 
 === defeat ===

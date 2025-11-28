@@ -41,3 +41,5 @@ You arrive safely back home.
 Your adventure comes to an end.
 
 THE END
+
+-> END

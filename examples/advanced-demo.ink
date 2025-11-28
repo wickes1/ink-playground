@@ -35,7 +35,7 @@ Choose your character class:
     -> game_start
 
 === game_start ===
-Your stats: Strength {strength} | Intelligence {intelligence} | Luck {luck}
+Your stats: Strength {strength} \| Intelligence {intelligence} \| Luck {luck}
 
 You enter a mysterious dungeon.
 
@@ -140,3 +140,5 @@ Final Stats:
 - Monster Defeated: {monster_defeated}
 
 THE END
+
+-> END

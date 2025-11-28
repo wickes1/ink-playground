@@ -4,6 +4,7 @@ import { Play, Square, RotateCcw } from 'lucide-react';
 import { Editor } from './components/Editor';
 import { Runner } from './components/Runner';
 import { NodeGraph } from './components/NodeGraph';
+import { Toast } from './components/Toast';
 import { useInk } from './hooks/useInk';
 import { useInkRunner } from './hooks/useInkRunner';
 
@@ -18,8 +19,8 @@ const EXAMPLES = [
 export default function App() {
   const [code, setCode] = useState('');
   const [isRunning, setIsRunning] = useState(false);
-  const { parse, isParsing } = useInk();
-  const { state, start, makeChoice, reset } = useInkRunner();
+  const { parse, isParsing, error, setError } = useInk();
+  const { state, start, makeChoice, reset, continueToNextKnot, needsContinue } = useInkRunner();
 
   const handleRun = () => {
     const story = parse(code);
@@ -48,9 +49,9 @@ export default function App() {
   };
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-screen flex flex-col bg-white overflow-hidden">
       {/* Header */}
-      <header className="header">
+      <header className="header shrink-0">
         <div className="header-left">
           <span className="header-title">Ink Playground</span>
           <span className="header-version">v0.1.0</span>
@@ -82,65 +83,87 @@ export default function App() {
             <option value="" disabled>Examples</option>
             {EXAMPLES.map(e => <option key={e.path} value={e.path}>{e.name}</option>)}
           </select>
-          <div className="status-indicator">
-            <div className={`status-dot ${isRunning ? 'status-running' : ''}`} />
-            <span className="status-text">{isRunning ? 'Running' : 'Ready'}</span>
-          </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex overflow-hidden">
+      <main className="flex-1 flex overflow-hidden relative">
         {!isRunning ? (
           // Edit Mode: Editor + Graph side by side
-          <div className="flex flex-1">
+          <div className="flex flex-1 w-full h-full">
             <Resizable
               defaultSize={{ width: '50%', height: '100%' }}
-              minWidth="30%"
-              maxWidth="70%"
+              minWidth={300}
+              maxWidth="80%"
               enable={{ right: true }}
-              handleStyles={{ right: { width: '8px', right: '-4px', cursor: 'col-resize' } }}
-              handleClasses={{ right: 'resize-handle-vertical' }}
+              handleStyles={{
+                right: {
+                  width: '10px',
+                  right: '-5px',
+                  cursor: 'col-resize',
+                  zIndex: 40
+                }
+              }}
+              handleClasses={{ right: 'resize-handle-vertical hover:bg-indigo-500/20 active:bg-indigo-500/40' }}
+              className="flex flex-col border-r border-slate-200"
             >
-              <Editor value={code} onChange={setCode} onRun={handleRun} isRunning={isParsing} />
+              <Editor value={code} onChange={setCode} onRun={handleRun} />
             </Resizable>
-            <div className="flex-1">
+            <div className="flex-1 h-full overflow-hidden bg-slate-50">
               <NodeGraph script={code} activeKnot={null} />
             </div>
           </div>
         ) : (
           // Run Mode: Editor + Graph (stacked) + Runner
-          <div className="flex flex-1">
+          <div className="flex flex-1 w-full h-full">
             <Resizable
-              defaultSize={{ width: 'calc(100% - 380px)', height: '100%' }}
-              minWidth="40%"
-              maxWidth="75%"
+              defaultSize={{ width: '60%', height: '100%' }}
+              minWidth={300}
+              maxWidth="80%"
               enable={{ right: true }}
-              handleStyles={{ right: { width: '8px', right: '-4px', cursor: 'col-resize' } }}
-              handleClasses={{ right: 'resize-handle-vertical' }}
+              handleStyles={{
+                right: {
+                  width: '10px',
+                  right: '-5px',
+                  cursor: 'col-resize',
+                  zIndex: 40
+                }
+              }}
+              handleClasses={{ right: 'resize-handle-vertical hover:bg-indigo-500/20 active:bg-indigo-500/40' }}
+              className="flex flex-col border-r border-slate-200"
             >
               <div className="h-full flex flex-col">
                 <Resizable
                   defaultSize={{ width: '100%', height: '50%' }}
-                  minHeight="25%"
-                  maxHeight="75%"
+                  minHeight={100}
+                  maxHeight="90%"
                   enable={{ bottom: true }}
-                  handleStyles={{ bottom: { height: '8px', bottom: '-4px', cursor: 'row-resize' } }}
-                  handleClasses={{ bottom: 'resize-handle-horizontal' }}
+                  handleStyles={{
+                    bottom: {
+                      height: '10px',
+                      bottom: '-5px',
+                      cursor: 'row-resize',
+                      zIndex: 40
+                    }
+                  }}
+                  handleClasses={{ bottom: 'resize-handle-horizontal hover:bg-indigo-500/20 active:bg-indigo-500/40' }}
+                  className="flex flex-col border-b border-slate-200"
                 >
-                  <Editor value={code} onChange={setCode} onRun={handleRun} isRunning={isParsing} readOnly />
+                  <Editor value={code} onChange={setCode} onRun={handleRun} readOnly />
                 </Resizable>
-                <div className="flex-1">
+                <div className="flex-1 overflow-hidden bg-slate-50">
                   <NodeGraph script={code} activeKnot={null} />
                 </div>
               </div>
             </Resizable>
-            <div className="flex-1">
-              <Runner state={state} onChoice={makeChoice} onReset={handleRestart} />
+            <div className="flex-1 h-full overflow-hidden bg-white">
+              <Runner state={state} onChoice={makeChoice} onContinue={continueToNextKnot} needsContinue={needsContinue} />
             </div>
           </div>
         )}
       </main>
+
+      <Toast message={error} onClose={() => setError(null)} />
     </div>
   );
 }

@@ -15,7 +15,6 @@ interface InkNode {
   type: 'knot' | 'stitch' | 'start';
 }
 
-// Parse Ink script to extract knots and their connections
 function parseInkScript(script: string): InkNode[] {
   const lines = script.split('\n');
   const nodes: InkNode[] = [];
@@ -25,7 +24,6 @@ function parseInkScript(script: string): InkNode[] {
   let currentKnot: string | null = null;
   const knotDiverts: Map<string, Set<string>> = new Map();
 
-  // First pass: find all knots and their diverts
   for (const line of lines) {
     const knotMatch = line.match(knotRegex);
     if (knotMatch) {
@@ -47,7 +45,6 @@ function parseInkScript(script: string): InkNode[] {
     }
   }
 
-  // Create nodes with positions
   const knotNames = Array.from(knotDiverts.keys());
   const cols = Math.ceil(Math.sqrt(knotNames.length));
 
@@ -64,7 +61,6 @@ function parseInkScript(script: string): InkNode[] {
     });
   });
 
-  // If no knots found, show a placeholder
   if (nodes.length === 0) {
     nodes.push({
       id: 'start',
@@ -82,60 +78,74 @@ function parseInkScript(script: string): InkNode[] {
 export function NodeGraph({ script, activeKnot }: NodeGraphProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
 
   const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
-  const [isDragging, setIsDragging] = useState(false);
-  const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 });
+  const dragRef = useRef({ isDragging: false, lastX: 0, lastY: 0 });
 
   const nodes = useMemo(() => parseInkScript(script), [script]);
 
-  const drawGrid = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
+  // Handle canvas resize with ResizeObserver
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (entry) {
+        const { width, height } = entry.contentRect;
+        setCanvasSize({ width, height });
+      }
+    });
+
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
+
+  // Draw canvas
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || canvasSize.width === 0 || canvasSize.height === 0) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = canvasSize.width * dpr;
+    canvas.height = canvasSize.height * dpr;
+    canvas.style.width = `${canvasSize.width}px`;
+    canvas.style.height = `${canvasSize.height}px`;
+    ctx.scale(dpr, dpr);
+
+    // Clear
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillRect(0, 0, canvasSize.width, canvasSize.height);
+
+    // Draw grid
     const gridSize = 24 * transform.scale;
     const offsetX = transform.x % gridSize;
     const offsetY = transform.y % gridSize;
 
     ctx.beginPath();
-    ctx.strokeStyle = '#e5e5e5';
+    ctx.strokeStyle = '#e2e8f0';
     ctx.lineWidth = 1;
 
-    for (let x = offsetX; x < width; x += gridSize) {
+    for (let x = offsetX; x < canvasSize.width; x += gridSize) {
       ctx.moveTo(x, 0);
-      ctx.lineTo(x, height);
+      ctx.lineTo(x, canvasSize.height);
     }
-
-    for (let y = offsetY; y < height; y += gridSize) {
+    for (let y = offsetY; y < canvasSize.height; y += gridSize) {
       ctx.moveTo(0, y);
-      ctx.lineTo(width, y);
+      ctx.lineTo(canvasSize.width, y);
     }
-
     ctx.stroke();
-  }, [transform]);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * window.devicePixelRatio;
-    canvas.height = rect.height * window.devicePixelRatio;
-    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-
-    // Clear with warm background
-    ctx.fillStyle = '#faf9f7';
-    ctx.fillRect(0, 0, rect.width, rect.height);
-
-    // Draw grid
-    drawGrid(ctx, rect.width, rect.height);
 
     // Apply transform
     ctx.save();
     ctx.translate(transform.x, transform.y);
     ctx.scale(transform.scale, transform.scale);
 
-    // Draw connections first
+    // Draw connections
     nodes.forEach(node => {
       node.connections.forEach(targetId => {
         const target = nodes.find(n => n.id === targetId);
@@ -144,7 +154,6 @@ export function NodeGraph({ script, activeKnot }: NodeGraphProps) {
         ctx.beginPath();
         ctx.moveTo(node.x + 70, node.y + 22);
 
-        // Bezier curve for smooth connection
         const midX = (node.x + target.x) / 2 + 70;
         ctx.bezierCurveTo(
           midX, node.y + 22,
@@ -152,7 +161,7 @@ export function NodeGraph({ script, activeKnot }: NodeGraphProps) {
           target.x, target.y + 22
         );
 
-        ctx.strokeStyle = '#d4d4d4';
+        ctx.strokeStyle = '#cbd5e1';
         ctx.lineWidth = 2;
         ctx.stroke();
 
@@ -165,7 +174,7 @@ export function NodeGraph({ script, activeKnot }: NodeGraphProps) {
         ctx.moveTo(-8, -4);
         ctx.lineTo(0, 0);
         ctx.lineTo(-8, 4);
-        ctx.strokeStyle = '#d4d4d4';
+        ctx.strokeStyle = '#cbd5e1';
         ctx.stroke();
         ctx.restore();
       });
@@ -178,17 +187,15 @@ export function NodeGraph({ script, activeKnot }: NodeGraphProps) {
 
       const width = 140;
       const height = 44;
-      const radius = 6;
+      const radius = 8;
 
-      // Node shadow
       if (isActive) {
         ctx.shadowBlur = 12;
-        ctx.shadowColor = 'rgba(139, 161, 132, 0.4)';
+        ctx.shadowColor = 'rgba(99, 102, 241, 0.3)';
       }
 
-      // Node background
-      ctx.fillStyle = isActive ? '#8ba184' : isStart ? '#f5f0eb' : '#ffffff';
-      ctx.strokeStyle = isActive ? '#6b8a63' : isStart ? '#d4ccc4' : '#e5e5e5';
+      ctx.fillStyle = isActive ? '#6366f1' : isStart ? '#f1f5f9' : '#ffffff';
+      ctx.strokeStyle = isActive ? '#4f46e5' : '#e2e8f0';
       ctx.lineWidth = isActive ? 2 : 1;
 
       ctx.beginPath();
@@ -198,15 +205,14 @@ export function NodeGraph({ script, activeKnot }: NodeGraphProps) {
 
       ctx.shadowBlur = 0;
 
-      // Node label
-      ctx.fillStyle = isActive ? '#ffffff' : '#404040';
-      ctx.font = `500 13px Inter, system-ui, sans-serif`;
+      ctx.fillStyle = isActive ? '#ffffff' : '#0f172a';
+      ctx.font = '500 13px Inter, system-ui, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(node.name, node.x + width / 2, node.y + height / 2);
 
       // Connection dots
-      ctx.fillStyle = isActive ? '#6b8a63' : '#d4d4d4';
+      ctx.fillStyle = isActive ? '#4f46e5' : '#cbd5e1';
       ctx.beginPath();
       ctx.arc(node.x + width, node.y + height / 2, 4, 0, Math.PI * 2);
       ctx.fill();
@@ -217,31 +223,49 @@ export function NodeGraph({ script, activeKnot }: NodeGraphProps) {
     });
 
     ctx.restore();
-  }, [nodes, activeKnot, transform, drawGrid]);
+  }, [nodes, activeKnot, transform, canvasSize]);
 
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault();
-    const delta = -e.deltaY * 0.001;
-    const newScale = Math.min(Math.max(0.25, transform.scale + delta), 3);
-    setTransform(prev => ({ ...prev, scale: newScale }));
-  }, [transform.scale]);
+  // Wheel zoom
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true);
-    setLastMousePos({ x: e.clientX, y: e.clientY });
-  };
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const delta = -e.deltaY * 0.001;
+      setTransform(prev => ({
+        ...prev,
+        scale: Math.min(Math.max(0.25, prev.scale + delta), 3)
+      }));
+    };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
-    const dx = e.clientX - lastMousePos.x;
-    const dy = e.clientY - lastMousePos.y;
+    container.addEventListener('wheel', handleWheel, { passive: false });
+    return () => container.removeEventListener('wheel', handleWheel);
+  }, []);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    dragRef.current = { isDragging: true, lastX: e.clientX, lastY: e.clientY };
+  }, []);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!dragRef.current.isDragging) return;
+
+    const dx = e.clientX - dragRef.current.lastX;
+    const dy = e.clientY - dragRef.current.lastY;
+    dragRef.current.lastX = e.clientX;
+    dragRef.current.lastY = e.clientY;
+
     setTransform(prev => ({ ...prev, x: prev.x + dx, y: prev.y + dy }));
-    setLastMousePos({ x: e.clientX, y: e.clientY });
-  };
+  }, []);
 
-  const handleMouseUp = () => setIsDragging(false);
+  const handleMouseUp = useCallback(() => {
+    dragRef.current.isDragging = false;
+  }, []);
 
   const resetView = () => setTransform({ x: 0, y: 0, scale: 1 });
+
+  const zoomOut = () => setTransform(p => ({ ...p, scale: Math.max(0.25, p.scale - 0.1) }));
+  const zoomIn = () => setTransform(p => ({ ...p, scale: Math.min(3, p.scale + 0.1) }));
 
   return (
     <div className="node-graph">
@@ -252,21 +276,15 @@ export function NodeGraph({ script, activeKnot }: NodeGraphProps) {
         </div>
 
         <div className="panel-header-right">
-          {activeKnot && (
-            <span className="active-knot">
-              <span className="active-dot" />
-              {activeKnot}
-            </span>
-          )}
           <div className="zoom-controls">
-            <button onClick={() => setTransform(p => ({ ...p, scale: Math.max(0.25, p.scale - 0.1) }))} className="zoom-btn">
-              <Minus size={12} />
+            <button onClick={zoomOut} className="zoom-btn" title="Zoom out">
+              <Minus size={14} />
             </button>
-            <button onClick={resetView} className="zoom-btn">
-              <RotateCcw size={12} />
+            <button onClick={resetView} className="zoom-btn" title="Reset view">
+              <RotateCcw size={14} />
             </button>
-            <button onClick={() => setTransform(p => ({ ...p, scale: Math.min(3, p.scale + 0.1) }))} className="zoom-btn">
-              <Plus size={12} />
+            <button onClick={zoomIn} className="zoom-btn" title="Zoom in">
+              <Plus size={14} />
             </button>
           </div>
         </div>
@@ -279,9 +297,8 @@ export function NodeGraph({ script, activeKnot }: NodeGraphProps) {
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
-        onWheel={handleWheel}
       >
-        <canvas ref={canvasRef} className="graph-canvas" />
+        <canvas ref={canvasRef} />
 
         {nodes.length <= 1 && !script.trim() && (
           <div className="graph-placeholder">

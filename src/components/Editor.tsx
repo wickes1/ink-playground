@@ -1,12 +1,11 @@
 import { useEffect } from 'react';
 import MonacoEditor, { type Monaco } from '@monaco-editor/react';
-import { Play } from 'lucide-react';
+
 
 interface Props {
   value: string;
   onChange: (value: string) => void;
   onRun: () => void;
-  isRunning: boolean;
   readOnly?: boolean;
 }
 
@@ -57,7 +56,7 @@ function setupInkLanguage(monaco: Monaco) {
   });
 }
 
-export function Editor({ value, onChange, onRun, isRunning, readOnly = false }: Props) {
+export function Editor({ value, onChange, onRun, readOnly = false }: Props) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
@@ -76,12 +75,6 @@ export function Editor({ value, onChange, onRun, isRunning, readOnly = false }: 
           <span className="panel-title">Editor</span>
           {readOnly && <span className="badge badge-muted">Read-only</span>}
         </div>
-        {!readOnly && (
-          <button onClick={onRun} disabled={isRunning} className="btn btn-primary btn-sm">
-            <Play size={12} />
-            {isRunning ? 'Running...' : 'Run'}
-          </button>
-        )}
       </div>
 
       <div className="editor-content">
@@ -104,7 +97,8 @@ export function Editor({ value, onChange, onRun, isRunning, readOnly = false }: 
             glyphMargin: false,
             readOnly,
             domReadOnly: readOnly,
-            renderLineHighlight: readOnly ? 'none' : 'line'
+            renderLineHighlight: readOnly ? 'none' : 'line',
+            automaticLayout: true
           }}
         />
       </div>

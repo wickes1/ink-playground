@@ -72,3 +72,5 @@ The dungeon is dark and damp.
 Your exploration of the castle is complete!
 
 THE END
+
+-> END
