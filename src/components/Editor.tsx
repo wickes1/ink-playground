@@ -1,5 +1,7 @@
-import { useEffect } from 'react';
-import MonacoEditor, { type Monaco } from '@monaco-editor/react';
+import { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
+import MonacoEditor, { type Monaco, type OnMount } from '@monaco-editor/react';
+
+type MonacoEditor = Parameters<OnMount>[0];
 
 
 interface Props {
@@ -7,6 +9,10 @@ interface Props {
   onChange: (value: string) => void;
   onRun: () => void;
   readOnly?: boolean;
+}
+
+export interface EditorHandle {
+  goToKnot: (knotName: string) => void;
 }
 
 function setupInkLanguage(monaco: Monaco) {
@@ -56,7 +62,35 @@ function setupInkLanguage(monaco: Monaco) {
   });
 }
 
-export function Editor({ value, onChange, onRun, readOnly = false }: Props) {
+export const Editor = forwardRef<EditorHandle, Props>(function Editor(
+  { value, onChange, onRun, readOnly = false },
+  ref
+) {
+  const editorRef = useRef<MonacoEditor | null>(null);
+
+  useImperativeHandle(ref, () => ({
+    goToKnot(knotName: string) {
+      const editor = editorRef.current;
+      if (!editor) return;
+
+      const model = editor.getModel();
+      if (!model) return;
+
+      const knotRegex = new RegExp(`^===\\s*${knotName}\\s*===?`);
+      const lines = model.getLinesContent();
+
+      for (let i = 0; i < lines.length; i++) {
+        if (knotRegex.test(lines[i])) {
+          const lineNumber = i + 1;
+          editor.revealLineInCenter(lineNumber);
+          editor.setPosition({ lineNumber, column: 1 });
+          editor.focus();
+          break;
+        }
+      }
+    }
+  }));
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
@@ -85,6 +119,7 @@ export function Editor({ value, onChange, onRun, readOnly = false }: Props) {
           value={value}
           onChange={v => !readOnly && onChange(v || '')}
           beforeMount={setupInkLanguage}
+          onMount={editor => { editorRef.current = editor; }}
           options={{
             fontSize: 13,
             fontFamily: "'JetBrains Mono', monospace",
@@ -108,4 +143,4 @@ export function Editor({ value, onChange, onRun, readOnly = false }: Props) {
       </div>
     </div>
   );
-}
+});

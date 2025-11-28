@@ -4,6 +4,7 @@ import { NODE_GRAPH } from '../constants';
 
 interface NodeGraphProps {
   script: string;
+  onNodeClick?: (knotName: string) => void;
 }
 
 interface InkNode {
@@ -67,7 +68,7 @@ function parseInkScript(script: string): InkNode[] {
   }));
 }
 
-export function NodeGraph({ script }: NodeGraphProps) {
+export function NodeGraph({ script, onNodeClick }: NodeGraphProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
@@ -223,6 +224,31 @@ export function NodeGraph({ script }: NodeGraphProps) {
     dragRef.current = { isDragging: true, lastX: e.clientX, lastY: e.clientY };
   }, []);
 
+  const handleClick = useCallback((e: React.MouseEvent) => {
+    if (!onNodeClick) return;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const clickX = (e.clientX - rect.left - transform.x) / transform.scale;
+    const clickY = (e.clientY - rect.top - transform.y) / transform.scale;
+
+    const { nodeWidth, nodeHeight } = NODE_GRAPH;
+
+    for (const node of nodes) {
+      if (
+        clickX >= node.x &&
+        clickX <= node.x + nodeWidth &&
+        clickY >= node.y &&
+        clickY <= node.y + nodeHeight
+      ) {
+        onNodeClick(node.id);
+        break;
+      }
+    }
+  }, [nodes, transform, onNodeClick]);
+
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!dragRef.current.isDragging) return;
 
@@ -272,6 +298,7 @@ export function NodeGraph({ script }: NodeGraphProps) {
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
+        onClick={handleClick}
       >
         <canvas ref={canvasRef} />
 

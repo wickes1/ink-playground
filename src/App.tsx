@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { Resizable } from 're-resizable';
-import { Editor } from './components/Editor';
+import { Editor, type EditorHandle } from './components/Editor';
 import { Runner } from './components/Runner';
 import { NodeGraph } from './components/NodeGraph';
 import { Toast } from './components/Toast';
@@ -13,6 +13,11 @@ export default function App() {
   const [isRunning, setIsRunning] = useState(false);
   const { parse, isParsing, error, setError } = useInk();
   const { state, start, makeChoice, reset, continueToNextKnot, needsContinue } = useInkRunner();
+  const editorRef = useRef<EditorHandle>(null);
+
+  const handleNodeClick = useCallback((knotName: string) => {
+    editorRef.current?.goToKnot(knotName);
+  }, []);
 
   const handleRun = () => {
     const story = parse(code);
@@ -79,10 +84,10 @@ export default function App() {
               handleClasses={{ right: RESIZABLE_HANDLE_CLASS.vertical }}
               className="flex flex-col border-r border-slate-200"
             >
-              <Editor value={code} onChange={setCode} onRun={handleRun} />
+              <Editor ref={editorRef} value={code} onChange={setCode} onRun={handleRun} />
             </Resizable>
             <div className="flex-1 h-full overflow-hidden bg-slate-50">
-              <NodeGraph script={code} />
+              <NodeGraph script={code} onNodeClick={handleNodeClick} />
             </div>
           </div>
         ) : (
@@ -106,10 +111,10 @@ export default function App() {
                   handleClasses={{ bottom: RESIZABLE_HANDLE_CLASS.horizontal }}
                   className="flex flex-col border-b border-slate-200"
                 >
-                  <Editor value={code} onChange={setCode} onRun={handleRun} readOnly />
+                  <Editor ref={editorRef} value={code} onChange={setCode} onRun={handleRun} readOnly />
                 </Resizable>
                 <div className="flex-1 overflow-hidden bg-slate-50">
-                  <NodeGraph script={code} />
+                  <NodeGraph script={code} onNodeClick={handleNodeClick} />
                 </div>
               </div>
             </Resizable>
