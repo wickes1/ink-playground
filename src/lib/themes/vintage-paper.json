@@ -1,0 +1,122 @@
+{
+  "name": "vintage-paper",
+  "cssVars": {
+    "theme": {
+      "font-sans": "Georgia, Cambria, serif",
+      "font-mono": "JetBrains Mono, monospace",
+      "radius": "0.25rem"
+    },
+    "light": {
+      "background": "hsl(36 33% 97%)",
+      "background-secondary": "hsl(36 33% 94%)",
+      "background-tertiary": "hsl(36 28% 90%)",
+      "foreground": "hsl(25 30% 18%)",
+      "foreground-secondary": "hsl(25 20% 40%)",
+      "foreground-muted": "hsl(25 15% 55%)",
+      "border": "hsl(36 25% 85%)",
+      "border-dark": "hsl(36 20% 75%)",
+      "accent": "hsl(25 80% 45%)",
+      "accent-hover": "hsl(25 80% 35%)",
+      "accent-light": "hsl(36 50% 90%)",
+      "success": "hsl(140 50% 35%)",
+      "success-hover": "hsl(140 50% 28%)",
+      "success-bg": "hsl(140 40% 94%)",
+      "error": "hsl(0 60% 45%)",
+      "error-hover": "hsl(0 60% 35%)",
+      "error-bg": "hsl(0 50% 96%)",
+      "warning": "hsl(45 80% 45%)",
+      "warning-bg": "hsl(45 60% 93%)"
+    },
+    "dark": {
+      "background": "hsl(25 20% 10%)",
+      "background-secondary": "hsl(25 18% 13%)",
+      "background-tertiary": "hsl(25 16% 16%)",
+      "foreground": "hsl(36 33% 90%)",
+      "foreground-secondary": "hsl(36 20% 70%)",
+      "foreground-muted": "hsl(36 15% 50%)",
+      "border": "hsl(25 15% 22%)",
+      "border-dark": "hsl(25 15% 30%)",
+      "accent": "hsl(30 70% 55%)",
+      "accent-hover": "hsl(30 70% 65%)",
+      "accent-light": "hsl(25 40% 18%)",
+      "success": "hsl(140 50% 40%)",
+      "success-hover": "hsl(140 50% 50%)",
+      "success-bg": "hsl(140 30% 15%)",
+      "error": "hsl(0 60% 50%)",
+      "error-hover": "hsl(0 60% 60%)",
+      "error-bg": "hsl(0 40% 15%)",
+      "warning": "hsl(45 70% 50%)",
+      "warning-bg": "hsl(45 40% 15%)"
+    }
+  },
+  "editor": {
+    "light": {
+      "base": "vs",
+      "background": "#f9f5ef",
+      "lineHighlight": "#f0e8dc",
+      "lineNumber": "#c4b099",
+      "lineNumberActive": "#8b7355",
+      "selection": "#e5d8c4",
+      "tokens": {
+        "keyword": { "foreground": "8b5a2b", "fontStyle": "bold" },
+        "string": { "foreground": "6b8e23" },
+        "number": { "foreground": "8b4513" },
+        "comment": { "foreground": "a0937a", "fontStyle": "italic" },
+        "variable": { "foreground": "704214" }
+      }
+    },
+    "dark": {
+      "base": "vs-dark",
+      "background": "#1f1912",
+      "lineHighlight": "#2a2118",
+      "lineNumber": "#5a4a3a",
+      "lineNumberActive": "#9a8a7a",
+      "selection": "#3a3028",
+      "tokens": {
+        "keyword": { "foreground": "d4a76a", "fontStyle": "bold" },
+        "string": { "foreground": "9acd32" },
+        "number": { "foreground": "daa06d" },
+        "comment": { "foreground": "6a5a4a", "fontStyle": "italic" },
+        "variable": { "foreground": "c4956a" }
+      }
+    }
+  },
+  "canvas": {
+    "light": {
+      "background": "#f9f5ef",
+      "grid": "#e5ddd0",
+      "nodeDefault": "#fffdf8",
+      "nodeStart": "#f5f0e5",
+      "nodeActive": { "fill": "#f0f5e8", "stroke": "#6b8e23" },
+      "nodeHover": { "fill": "#fff0e0", "stroke": "#8b5a2b" },
+      "nodeConnected": { "fill": "#faf5ea", "stroke": "#c4a060" },
+      "nodeBorder": "#d0c4b0",
+      "textDefault": "#3a2a1a",
+      "textActive": "#4a6a1a",
+      "textHover": "#6a3a1a",
+      "connectionDefault": "#c4b8a0",
+      "connectionHighlight": "#8b5a2b",
+      "dotDefault": "#c4b8a0",
+      "dotActive": "#6b8e23",
+      "dotHover": "#8b5a2b"
+    },
+    "dark": {
+      "background": "#1f1912",
+      "grid": "#2a2218",
+      "nodeDefault": "#2a2218",
+      "nodeStart": "#252015",
+      "nodeActive": { "fill": "#1a2a18", "stroke": "#6b8e23" },
+      "nodeHover": { "fill": "#2a2520", "stroke": "#d4a76a" },
+      "nodeConnected": { "fill": "#2a2318", "stroke": "#a08050" },
+      "nodeBorder": "#3a3228",
+      "textDefault": "#d0c4b0",
+      "textActive": "#9acd32",
+      "textHover": "#d4a76a",
+      "connectionDefault": "#4a4030",
+      "connectionHighlight": "#d4a76a",
+      "dotDefault": "#4a4030",
+      "dotActive": "#6b8e23",
+      "dotHover": "#d4a76a"
+    }
+  }
+}

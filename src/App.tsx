@@ -4,8 +4,10 @@ import { Editor, type EditorHandle } from './components/Editor';
 import { Runner } from './components/Runner';
 import { NodeGraph } from './components/NodeGraph';
 import { Toast } from './components/Toast';
+import { ThemeSelector } from './components/ThemeSelector';
 import { useInk } from './hooks/useInk';
 import { useInkRunner } from './hooks/useInkRunner';
+import { useTheme } from './hooks/useTheme';
 import { EXAMPLES, RESIZABLE_HANDLE_STYLE, RESIZABLE_HANDLE_CLASS } from './constants';
 
 function updatePositionTag(code: string, knotName: string, x: number, y: number): string {
@@ -34,6 +36,7 @@ export default function App() {
   const runningCodeRef = useRef<string>('');
   const { parse, isParsing, error, setError } = useInk();
   const { state, start, makeChoice, reset, continueToNextKnot, needsContinue } = useInkRunner();
+  const { editorTheme, canvasTheme, isDark } = useTheme();
   const editorRef = useRef<EditorHandle>(null);
 
   const handleNodeClick = useCallback((knotName: string) => {
@@ -98,7 +101,7 @@ export default function App() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-white overflow-hidden">
+    <div className="h-screen flex flex-col overflow-hidden" style={{ background: 'var(--color-bg)' }}>
       <header className="header shrink-0">
         <div className="header-left">
           <span className="header-title">Ink Playground</span>
@@ -128,6 +131,7 @@ export default function App() {
         </div>
 
         <div className="header-right">
+          <ThemeSelector />
           <select className="select" onChange={e => loadExample(e.target.value)} defaultValue="">
             <option value="" disabled>Examples</option>
             {EXAMPLES.map(e => <option key={e.path} value={e.path}>{e.name}</option>)}
@@ -145,12 +149,27 @@ export default function App() {
               enable={{ right: true }}
               handleStyles={{ right: RESIZABLE_HANDLE_STYLE.vertical }}
               handleClasses={{ right: RESIZABLE_HANDLE_CLASS.vertical }}
-              className="flex flex-col border-r border-slate-200"
+              className="flex flex-col"
+              style={{ borderRight: '1px solid var(--color-border)' }}
             >
-              <Editor ref={editorRef} value={code} onChange={handleCodeChange} onRun={handleRun} />
+              <Editor
+                ref={editorRef}
+                value={code}
+                onChange={handleCodeChange}
+                onRun={handleRun}
+                editorTheme={editorTheme}
+                isDark={isDark}
+              />
             </Resizable>
-            <div className="flex-1 h-full overflow-hidden bg-slate-50">
-              <NodeGraph script={code} onNodeClick={handleNodeClick} onNodePositionChange={handleNodePositionChange} onAutoLayout={handleAutoLayout} activeKnot={state.currentKnot} />
+            <div className="flex-1 h-full overflow-hidden" style={{ background: 'var(--color-bg-secondary)' }}>
+              <NodeGraph
+                script={code}
+                onNodeClick={handleNodeClick}
+                onNodePositionChange={handleNodePositionChange}
+                onAutoLayout={handleAutoLayout}
+                activeKnot={state.currentKnot}
+                canvasTheme={canvasTheme}
+              />
             </div>
           </div>
         ) : (
@@ -162,7 +181,8 @@ export default function App() {
               enable={{ right: true }}
               handleStyles={{ right: RESIZABLE_HANDLE_STYLE.vertical }}
               handleClasses={{ right: RESIZABLE_HANDLE_CLASS.vertical }}
-              className="flex flex-col border-r border-slate-200"
+              className="flex flex-col"
+              style={{ borderRight: '1px solid var(--color-border)' }}
             >
               <div className="h-full flex flex-col">
                 <Resizable
@@ -172,16 +192,35 @@ export default function App() {
                   enable={{ bottom: true }}
                   handleStyles={{ bottom: RESIZABLE_HANDLE_STYLE.horizontal }}
                   handleClasses={{ bottom: RESIZABLE_HANDLE_CLASS.horizontal }}
-                  className="flex flex-col border-b border-slate-200"
+                  className="flex flex-col"
+                  style={{ borderBottom: '1px solid var(--color-border)' }}
                 >
-                  <Editor ref={editorRef} value={code} onChange={handleCodeChange} onRun={handleRestart} activeKnot={state.currentKnot} activeLine={state.currentLine} activeText={state.currentText} hasUnsavedChanges={hasUnsavedChanges} />
+                  <Editor
+                    ref={editorRef}
+                    value={code}
+                    onChange={handleCodeChange}
+                    onRun={handleRestart}
+                    activeKnot={state.currentKnot}
+                    activeLine={state.currentLine}
+                    activeText={state.currentText}
+                    hasUnsavedChanges={hasUnsavedChanges}
+                    editorTheme={editorTheme}
+                    isDark={isDark}
+                  />
                 </Resizable>
-                <div className="flex-1 overflow-hidden bg-slate-50">
-                  <NodeGraph script={code} onNodeClick={handleNodeClick} onNodePositionChange={handleNodePositionChange} onAutoLayout={handleAutoLayout} activeKnot={state.currentKnot} />
+                <div className="flex-1 overflow-hidden" style={{ background: 'var(--color-bg-secondary)' }}>
+                  <NodeGraph
+                    script={code}
+                    onNodeClick={handleNodeClick}
+                    onNodePositionChange={handleNodePositionChange}
+                    onAutoLayout={handleAutoLayout}
+                    activeKnot={state.currentKnot}
+                    canvasTheme={canvasTheme}
+                  />
                 </div>
               </div>
             </Resizable>
-            <div className="flex-1 h-full overflow-hidden bg-white">
+            <div className="flex-1 h-full overflow-hidden" style={{ background: 'var(--color-bg)' }}>
               <Runner state={state} onChoice={makeChoice} onContinue={continueToNextKnot} needsContinue={needsContinue} />
             </div>
           </div>

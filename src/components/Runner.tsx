@@ -34,7 +34,7 @@ export function Runner({ state, onChoice, onContinue, needsContinue }: Props) {
   const groups = useMemo(() => groupLinesByKnot(state.lines), [state.lines]);
 
   useEffect(() => {
-    contentRef.current?.scrollTo({ top: contentRef.current.scrollHeight, behavior: 'smooth' });
+    contentRef.current?.scrollTo({ top: contentRef.current.scrollHeight, behavior: 'instant' });
   }, [state.lines, state.choices, needsContinue]);
 
   const hasStory = state.story !== null;

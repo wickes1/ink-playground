@@ -20,7 +20,7 @@ export const RESIZABLE_HANDLE_CLASS = {
 } as const;
 
 // Story runner timing
-export const LINE_DELAY_MS = 400;
+export const LINE_DELAY_MS = 0;
 
 // Node graph layout
 export const NODE_GRAPH = {
