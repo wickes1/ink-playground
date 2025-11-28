@@ -1,4 +1,8 @@
 // Simple Hello World Example
+
+-> start
+
+=== start ===
 Hello, world!
 
 This is your first Ink story.

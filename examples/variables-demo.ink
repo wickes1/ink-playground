@@ -4,6 +4,9 @@ VAR health = 100
 VAR gold = 50
 VAR sword = false
 
+-> start
+
+=== start ===
 You are a brave adventurer.
 
 Health: {health} \| Gold: {gold} \| Has Sword: {sword}

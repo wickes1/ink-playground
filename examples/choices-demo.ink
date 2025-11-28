@@ -1,5 +1,8 @@
 // Choices Demo - Branching Narrative
 
+-> start
+
+=== start ===
 You stand at a crossroads in the forest.
 
 * [Go left]
