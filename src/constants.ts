@@ -41,4 +41,5 @@ export const EXAMPLES = [
   { path: 'examples/variables-demo.ink', name: 'Variables' },
   { path: 'examples/knots-demo.ink', name: 'Knots' },
   { path: 'examples/advanced-demo.ink', name: 'Advanced' },
+  { path: 'examples/ink-tutorial.ink', name: 'Tutorial' },
 ] as const;
