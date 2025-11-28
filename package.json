@@ -1,7 +1,7 @@
 {
-  "name": "ink-explorer",
-  "version": "1.0.0",
-  "description": "Ink Scripting Language Explorer - Interactive Parser and Runtime",
+  "name": "ink-playground",
+  "version": "0.1.0",
+  "description": "Ink Playground - Interactive Ink Script Editor",
   "main": "index.js",
   "scripts": {
     "dev": "vite",
@@ -16,16 +16,27 @@
     "interactive-fiction",
     "parser",
     "typescript",
-    "narrative"
+    "narrative",
+    "react",
+    "monaco-editor"
   ],
   "author": "",
   "license": "MIT",
   "type": "module",
   "dependencies": {
-    "inkjs": "^2.3.2"
+    "@monaco-editor/react": "^4.7.0",
+    "inkjs": "^2.3.2",
+    "lucide-react": "^0.554.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.1.7",
     "@types/node": "^24.10.1",
+    "@types/react": "^19.1.6",
+    "@types/react-dom": "^19.1.5",
+    "@vitejs/plugin-react": "^4.5.2",
+    "tailwindcss": "^4.1.7",
     "typescript": "^5.9.3",
     "vite": "^7.2.2"
   }
