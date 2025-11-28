@@ -1,0 +1,122 @@
+{
+  "name": "ocean-breeze",
+  "cssVars": {
+    "theme": {
+      "font-sans": "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
+      "font-mono": "JetBrains Mono, monospace",
+      "radius": "0.75rem"
+    },
+    "light": {
+      "background": "hsl(200 30% 98%)",
+      "background-secondary": "hsl(200 30% 95%)",
+      "background-tertiary": "hsl(200 25% 92%)",
+      "foreground": "hsl(200 50% 15%)",
+      "foreground-secondary": "hsl(200 25% 40%)",
+      "foreground-muted": "hsl(200 20% 55%)",
+      "border": "hsl(200 30% 88%)",
+      "border-dark": "hsl(200 25% 80%)",
+      "accent": "hsl(190 90% 40%)",
+      "accent-hover": "hsl(190 90% 30%)",
+      "accent-light": "hsl(190 60% 92%)",
+      "success": "hsl(160 70% 40%)",
+      "success-hover": "hsl(160 70% 32%)",
+      "success-bg": "hsl(160 50% 94%)",
+      "error": "hsl(350 70% 50%)",
+      "error-hover": "hsl(350 70% 40%)",
+      "error-bg": "hsl(350 50% 96%)",
+      "warning": "hsl(40 85% 50%)",
+      "warning-bg": "hsl(40 60% 94%)"
+    },
+    "dark": {
+      "background": "hsl(210 50% 8%)",
+      "background-secondary": "hsl(210 45% 11%)",
+      "background-tertiary": "hsl(210 40% 14%)",
+      "foreground": "hsl(200 30% 95%)",
+      "foreground-secondary": "hsl(200 20% 70%)",
+      "foreground-muted": "hsl(200 15% 50%)",
+      "border": "hsl(210 35% 20%)",
+      "border-dark": "hsl(210 30% 28%)",
+      "accent": "hsl(190 80% 50%)",
+      "accent-hover": "hsl(190 80% 60%)",
+      "accent-light": "hsl(190 50% 18%)",
+      "success": "hsl(160 70% 45%)",
+      "success-hover": "hsl(160 70% 55%)",
+      "success-bg": "hsl(160 40% 14%)",
+      "error": "hsl(350 70% 55%)",
+      "error-hover": "hsl(350 70% 65%)",
+      "error-bg": "hsl(350 40% 14%)",
+      "warning": "hsl(40 80% 55%)",
+      "warning-bg": "hsl(40 40% 14%)"
+    }
+  },
+  "editor": {
+    "light": {
+      "base": "vs",
+      "background": "#f5f9fb",
+      "lineHighlight": "#e8f4f8",
+      "lineNumber": "#9ab8c8",
+      "lineNumberActive": "#4a8ca8",
+      "selection": "#d0e8f0",
+      "tokens": {
+        "keyword": { "foreground": "0891b2", "fontStyle": "bold" },
+        "string": { "foreground": "059669" },
+        "number": { "foreground": "7c3aed" },
+        "comment": { "foreground": "94a3b8", "fontStyle": "italic" },
+        "variable": { "foreground": "6366f1" }
+      }
+    },
+    "dark": {
+      "base": "vs-dark",
+      "background": "#0f172a",
+      "lineHighlight": "#1e293b",
+      "lineNumber": "#475569",
+      "lineNumberActive": "#94a3b8",
+      "selection": "#334155",
+      "tokens": {
+        "keyword": { "foreground": "22d3ee", "fontStyle": "bold" },
+        "string": { "foreground": "34d399" },
+        "number": { "foreground": "c4b5fd" },
+        "comment": { "foreground": "64748b", "fontStyle": "italic" },
+        "variable": { "foreground": "a5b4fc" }
+      }
+    }
+  },
+  "canvas": {
+    "light": {
+      "background": "#f5f9fb",
+      "grid": "#d0e4ec",
+      "nodeDefault": "#ffffff",
+      "nodeStart": "#e8f4f8",
+      "nodeActive": { "fill": "#e6f7f0", "stroke": "#059669" },
+      "nodeHover": { "fill": "#e0f7fa", "stroke": "#0891b2" },
+      "nodeConnected": { "fill": "#ecfeff", "stroke": "#67e8f9" },
+      "nodeBorder": "#bcd4e0",
+      "textDefault": "#164e63",
+      "textActive": "#047857",
+      "textHover": "#0e7490",
+      "connectionDefault": "#94c4d4",
+      "connectionHighlight": "#0891b2",
+      "dotDefault": "#94c4d4",
+      "dotActive": "#059669",
+      "dotHover": "#0891b2"
+    },
+    "dark": {
+      "background": "#0f172a",
+      "grid": "#1e293b",
+      "nodeDefault": "#1e293b",
+      "nodeStart": "#172033",
+      "nodeActive": { "fill": "#0a2a1a", "stroke": "#34d399" },
+      "nodeHover": { "fill": "#083344", "stroke": "#22d3ee" },
+      "nodeConnected": { "fill": "#0c303d", "stroke": "#67e8f9" },
+      "nodeBorder": "#334155",
+      "textDefault": "#e2e8f0",
+      "textActive": "#34d399",
+      "textHover": "#22d3ee",
+      "connectionDefault": "#475569",
+      "connectionHighlight": "#22d3ee",
+      "dotDefault": "#475569",
+      "dotActive": "#34d399",
+      "dotHover": "#22d3ee"
+    }
+  }
+}

@@ -1,8 +1,8 @@
-import { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
+import { useEffect, useLayoutEffect, useRef, useImperativeHandle, forwardRef, useMemo, useState } from 'react';
 import MonacoEditor, { type Monaco, type OnMount } from '@monaco-editor/react';
+import type { EditorThemeColors } from '../lib/themes';
 
 type MonacoEditor = Parameters<OnMount>[0];
-
 
 interface Props {
   value: string;
@@ -12,6 +12,8 @@ interface Props {
   activeLine?: number | null;
   activeText?: string | null;
   hasUnsavedChanges?: boolean;
+  editorTheme?: EditorThemeColors | null;
+  isDark?: boolean;
 }
 
 export interface EditorHandle {
@@ -44,33 +46,100 @@ function setupInkLanguage(monaco: Monaco) {
       ]
     }
   });
+}
 
-  monaco.editor.defineTheme('ink-light', {
-    base: 'vs',
+function registerTheme(monaco: Monaco, themeName: string, themeColors: EditorThemeColors) {
+  monaco.editor.defineTheme(themeName, {
+    base: themeColors.base,
     inherit: true,
     rules: [
-      { token: 'keyword', foreground: '5a6e55', fontStyle: 'bold' },
-      { token: 'string', foreground: '7a9973' },
-      { token: 'number', foreground: '8b7355' },
-      { token: 'comment', foreground: 'b5a99a', fontStyle: 'italic' },
-      { token: 'variable', foreground: '8b7355' }
+      { token: 'keyword', foreground: themeColors.tokens.keyword.foreground, fontStyle: themeColors.tokens.keyword.fontStyle || '' },
+      { token: 'string', foreground: themeColors.tokens.string.foreground, fontStyle: themeColors.tokens.string.fontStyle || '' },
+      { token: 'number', foreground: themeColors.tokens.number.foreground, fontStyle: themeColors.tokens.number.fontStyle || '' },
+      { token: 'comment', foreground: themeColors.tokens.comment.foreground, fontStyle: themeColors.tokens.comment.fontStyle || '' },
+      { token: 'variable', foreground: themeColors.tokens.variable.foreground, fontStyle: themeColors.tokens.variable.fontStyle || '' }
     ],
     colors: {
-      'editor.background': '#fafafa',
-      'editor.lineHighlightBackground': '#f5f0eb',
-      'editorLineNumber.foreground': '#c4b9aa',
-      'editorLineNumber.activeForeground': '#8b7355',
-      'editor.selectionBackground': '#e5ddd4'
+      'editor.background': themeColors.background,
+      'editor.lineHighlightBackground': themeColors.lineHighlight,
+      'editorLineNumber.foreground': themeColors.lineNumber,
+      'editorLineNumber.activeForeground': themeColors.lineNumberActive,
+      'editor.selectionBackground': themeColors.selection
     }
   });
 }
 
+// Default light theme colors as fallback
+const defaultLightTheme: EditorThemeColors = {
+  base: 'vs',
+  background: '#fafafa',
+  lineHighlight: '#f5f0eb',
+  lineNumber: '#c4b9aa',
+  lineNumberActive: '#8b7355',
+  selection: '#e5ddd4',
+  tokens: {
+    keyword: { foreground: '5a6e55', fontStyle: 'bold' },
+    string: { foreground: '7a9973' },
+    number: { foreground: '8b7355' },
+    comment: { foreground: 'b5a99a', fontStyle: 'italic' },
+    variable: { foreground: '8b7355' }
+  }
+};
+
+// Default dark theme colors as fallback
+const defaultDarkTheme: EditorThemeColors = {
+  base: 'vs-dark',
+  background: '#1a1a2e',
+  lineHighlight: '#252545',
+  lineNumber: '#5a5a7a',
+  lineNumberActive: '#8a8aaa',
+  selection: '#3a3a5a',
+  tokens: {
+    keyword: { foreground: '7dd3fc', fontStyle: 'bold' },
+    string: { foreground: '86efac' },
+    number: { foreground: 'c4b5fd' },
+    comment: { foreground: '6b7280', fontStyle: 'italic' },
+    variable: { foreground: 'a5b4fc' }
+  }
+};
+
 export const Editor = forwardRef<EditorHandle, Props>(function Editor(
-  { value, onChange, onRun, activeKnot, activeLine, activeText, hasUnsavedChanges = false },
+  { value, onChange, onRun, activeKnot, activeLine, activeText, hasUnsavedChanges = false, editorTheme, isDark = false },
   ref
 ) {
   const editorRef = useRef<MonacoEditor | null>(null);
+  const monacoRef = useRef<Monaco | null>(null);
   const decorationsRef = useRef<string[]>([]);
+  const [isMonacoReady, setIsMonacoReady] = useState(false);
+
+  // Create a stable theme name based on the theme configuration
+  // Include a hash of the theme colors to ensure re-registration when theme changes
+  const themeName = useMemo(() => {
+    if (!editorTheme) return isDark ? 'ink-dark' : 'ink-light';
+    // Create a simple hash from theme colors to ensure uniqueness
+    const themeKey = JSON.stringify({
+      bg: editorTheme.background,
+      base: editorTheme.base,
+      keyword: editorTheme.tokens.keyword.foreground,
+    });
+    // Use unsigned right shift to ensure positive number
+    const hash = (themeKey.split('').reduce((a, b) => ((a << 5) - a) + b.charCodeAt(0), 0) >>> 0).toString(16);
+    return isDark ? `ink-dark-${hash}` : `ink-light-${hash}`;
+  }, [isDark, editorTheme]);
+
+  // Register and apply theme when it changes - use useLayoutEffect to ensure
+  // the theme is registered before Monaco tries to use it during render
+  useLayoutEffect(() => {
+    const monaco = monacoRef.current;
+    if (!monaco || !isMonacoReady) return;
+
+    const theme = editorTheme || (isDark ? defaultDarkTheme : defaultLightTheme);
+    const currentThemeName = themeName;
+
+    // Always re-register theme when editorTheme or themeName changes
+    registerTheme(monaco, currentThemeName, theme);
+    monaco.editor.setTheme(currentThemeName);
+  }, [editorTheme, themeName, isMonacoReady, isDark]);
 
   useImperativeHandle(ref, () => ({
     goToKnot(knotName: string) {
@@ -113,7 +182,6 @@ export const Editor = forwardRef<EditorHandle, Props>(function Editor(
     const hasActiveText = activeText !== null && activeText !== undefined && activeText.trim() !== '';
 
     if (!editor || (!hasActiveLine && !hasActiveText && !activeKnot)) {
-      // Clear decorations if nothing active
       if (editor && decorationsRef.current.length > 0) {
         decorationsRef.current = editor.deltaDecorations(decorationsRef.current, []);
       }
@@ -126,22 +194,18 @@ export const Editor = forwardRef<EditorHandle, Props>(function Editor(
     let targetLine: number | null = null;
     const lines = model.getLinesContent();
 
-    // Priority 1: Use precise line number from inkjs debug metadata
     if (hasActiveLine) {
       targetLine = activeLine;
-    }
-    // Priority 2: Search for the output text in the source code
-    else if (hasActiveText) {
+    } else if (hasActiveText) {
       const searchText = activeText.trim();
       for (let i = 0; i < lines.length; i++) {
-        // Check if the line contains the output text (ignoring leading/trailing whitespace)
         if (lines[i].trim().includes(searchText) || lines[i].includes(searchText)) {
           targetLine = i + 1;
           break;
         }
       }
     }
-    // Priority 3: Fall back to finding the knot definition line
+
     if (!targetLine && activeKnot) {
       const knotRegex = new RegExp(`^===\\s*${activeKnot}\\s*===?`);
       for (let i = 0; i < lines.length; i++) {
@@ -153,10 +217,8 @@ export const Editor = forwardRef<EditorHandle, Props>(function Editor(
     }
 
     if (targetLine && targetLine <= model.getLineCount()) {
-      // Scroll to the target line
       editor.revealLineInCenter(targetLine);
 
-      // Add decoration for the active line
       decorationsRef.current = editor.deltaDecorations(decorationsRef.current, [
         {
           range: {
@@ -175,6 +237,20 @@ export const Editor = forwardRef<EditorHandle, Props>(function Editor(
     }
   }, [activeLine, activeText, activeKnot]);
 
+  const handleBeforeMount = (monaco: Monaco) => {
+    setupInkLanguage(monaco);
+    monacoRef.current = monaco;
+
+    // Register initial theme
+    const theme = editorTheme || (isDark ? defaultDarkTheme : defaultLightTheme);
+    registerTheme(monaco, themeName, theme);
+  };
+
+  const handleMount = (editor: MonacoEditor) => {
+    editorRef.current = editor;
+    setIsMonacoReady(true);
+  };
+
   return (
     <div className="editor">
       <div className="panel-header">
@@ -190,11 +266,11 @@ export const Editor = forwardRef<EditorHandle, Props>(function Editor(
         <MonacoEditor
           height="100%"
           defaultLanguage="ink"
-          theme="ink-light"
+          theme={themeName}
           value={value}
           onChange={v => onChange(v || '')}
-          beforeMount={setupInkLanguage}
-          onMount={editor => { editorRef.current = editor; }}
+          beforeMount={handleBeforeMount}
+          onMount={handleMount}
           options={{
             fontSize: 13,
             fontFamily: "'JetBrains Mono', monospace",

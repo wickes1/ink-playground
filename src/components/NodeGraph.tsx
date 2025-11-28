@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { Minus, Plus, RotateCcw, Workflow } from 'lucide-react';
 import { NODE_GRAPH } from '../constants';
+import type { CanvasThemeColors } from '../lib/themes';
 
 interface NodeGraphProps {
   script: string;
@@ -8,6 +9,7 @@ interface NodeGraphProps {
   onNodePositionChange?: (knotName: string, x: number, y: number) => void;
   onAutoLayout?: (positions: Map<string, { x: number; y: number }>) => void;
   activeKnot?: string | null;
+  canvasTheme?: CanvasThemeColors | null;
 }
 
 interface InkNode {
@@ -24,6 +26,26 @@ interface KnotData {
   position: { x: number; y: number } | null;
 }
 
+// Default light theme colors as fallback
+const defaultCanvasTheme: CanvasThemeColors = {
+  background: '#f8fafc',
+  grid: '#e2e8f0',
+  nodeDefault: '#ffffff',
+  nodeStart: '#f1f5f9',
+  nodeActive: { fill: '#f0fdf4', stroke: '#22c55e' },
+  nodeHover: { fill: '#eef2ff', stroke: '#6366f1' },
+  nodeConnected: { fill: '#f5f3ff', stroke: '#a5b4fc' },
+  nodeBorder: '#e2e8f0',
+  textDefault: '#0f172a',
+  textActive: '#166534',
+  textHover: '#4338ca',
+  connectionDefault: '#cbd5e1',
+  connectionHighlight: '#6366f1',
+  dotDefault: '#cbd5e1',
+  dotActive: '#22c55e',
+  dotHover: '#6366f1'
+};
+
 function computeHierarchicalLayout(nodes: InkNode[]): Map<string, { x: number; y: number }> {
   if (nodes.length === 0) return new Map();
 
@@ -31,12 +53,10 @@ function computeHierarchicalLayout(nodes: InkNode[]): Map<string, { x: number; y
   const nodeMap = new Map(nodes.map(n => [n.id, n]));
   const { startX, startY, spacingX, spacingY } = NODE_GRAPH;
 
-  // Track occupied grid cells to avoid overlap
   const occupied = new Set<string>();
   const gridKey = (col: number, row: number) => `${col},${row}`;
 
   const placeNode = (id: string, col: number, row: number) => {
-    // Find first available row in this column
     while (occupied.has(gridKey(col, row))) {
       row++;
     }
@@ -48,7 +68,6 @@ function computeHierarchicalLayout(nodes: InkNode[]): Map<string, { x: number; y
     return { col, row };
   };
 
-  // Find main path: follow first connection from each node
   const mainPath = new Set<string>();
   const mainPathOrder: string[] = [];
   let current: string | null = nodes[0]?.id ?? null;
@@ -60,17 +79,14 @@ function computeHierarchicalLayout(nodes: InkNode[]): Map<string, { x: number; y
     current = node?.connections[0] ?? null;
   }
 
-  // Place main path horizontally at row 0
   mainPathOrder.forEach((id, col) => {
     placeNode(id, col, 0);
   });
 
-  // Place branches below main path
   const placed = new Set(mainPath);
   const nodeGridPos = new Map<string, { col: number; row: number }>();
   mainPathOrder.forEach((id, col) => nodeGridPos.set(id, { col, row: 0 }));
 
-  // Process nodes in order, placing their branch children
   const processQueue = [...mainPathOrder];
 
   while (processQueue.length > 0) {
@@ -79,7 +95,6 @@ function computeHierarchicalLayout(nodes: InkNode[]): Map<string, { x: number; y
     const parentGrid = nodeGridPos.get(parentId);
     if (!parent || !parentGrid) continue;
 
-    // Get branch connections (skip first if parent is on main path)
     const branches = mainPath.has(parentId)
       ? parent.connections.slice(1)
       : parent.connections;
@@ -88,7 +103,6 @@ function computeHierarchicalLayout(nodes: InkNode[]): Map<string, { x: number; y
       if (placed.has(childId)) return;
       placed.add(childId);
 
-      // Place branch: to the right of parent, below main line
       const col = parentGrid.col + 1;
       const row = parentGrid.row + branchIndex + 1;
       const actualPos = placeNode(childId, col, row);
@@ -97,7 +111,6 @@ function computeHierarchicalLayout(nodes: InkNode[]): Map<string, { x: number; y
     });
   }
 
-  // Handle disconnected nodes
   let disconnectedCol = 0;
   for (const node of nodes) {
     if (!placed.has(node.id)) {
@@ -172,7 +185,7 @@ function parseInkScript(script: string): InkNode[] {
   });
 }
 
-export function NodeGraph({ script, onNodeClick, onNodePositionChange, onAutoLayout, activeKnot }: NodeGraphProps) {
+export function NodeGraph({ script, onNodeClick, onNodePositionChange, onAutoLayout, activeKnot, canvasTheme }: NodeGraphProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
@@ -189,9 +202,11 @@ export function NodeGraph({ script, onNodeClick, onNodePositionChange, onAutoLay
     hasMoved: boolean;
   }>({ type: 'none', nodeId: null, startX: 0, startY: 0, lastX: 0, lastY: 0, hasMoved: false });
 
+  // Use provided theme or fallback to default
+  const theme = canvasTheme || defaultCanvasTheme;
+
   const parsedNodes = useMemo(() => parseInkScript(script), [script]);
 
-  // Merge parsed positions with local drag positions
   const nodes = useMemo(() => {
     return parsedNodes.map(node => ({
       ...node,
@@ -200,19 +215,16 @@ export function NodeGraph({ script, onNodeClick, onNodePositionChange, onAutoLay
     }));
   }, [parsedNodes, nodePositions]);
 
-  // Clear local positions when script changes (positions come from tags)
   useEffect(() => {
     setNodePositions(new Map());
   }, [script]);
 
-  // Auto-center view on nodes when script changes or canvas resizes
   useEffect(() => {
     if (parsedNodes.length === 0 || canvasSize.width === 0 || canvasSize.height === 0) return;
 
     const { nodeWidth, nodeHeight } = NODE_GRAPH;
     const padding = 40;
 
-    // Calculate bounding box using parsed positions (not drag positions)
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     for (const node of parsedNodes) {
       minX = Math.min(minX, node.x);
@@ -226,12 +238,10 @@ export function NodeGraph({ script, onNodeClick, onNodePositionChange, onAutoLay
     const centerX = minX + contentWidth / 2;
     const centerY = minY + contentHeight / 2;
 
-    // Calculate scale to fit content
     const scaleX = (canvasSize.width - padding * 2) / contentWidth;
     const scaleY = (canvasSize.height - padding * 2) / contentHeight;
     const scale = Math.min(Math.max(0.5, Math.min(scaleX, scaleY)), 1.5);
 
-    // Center the content
     const x = canvasSize.width / 2 - centerX * scale;
     const y = canvasSize.height / 2 - centerY * scale;
 
@@ -268,15 +278,17 @@ export function NodeGraph({ script, onNodeClick, onNodePositionChange, onAutoLay
     canvas.style.height = `${canvasSize.height}px`;
     ctx.scale(dpr, dpr);
 
-    ctx.fillStyle = '#f8fafc';
+    // Background
+    ctx.fillStyle = theme.background;
     ctx.fillRect(0, 0, canvasSize.width, canvasSize.height);
 
+    // Grid
     const gridSize = NODE_GRAPH.gridSize * transform.scale;
     const offsetX = transform.x % gridSize;
     const offsetY = transform.y % gridSize;
 
     ctx.beginPath();
-    ctx.strokeStyle = '#e2e8f0';
+    ctx.strokeStyle = theme.grid;
     ctx.lineWidth = 1;
 
     for (let x = offsetX; x < canvasSize.width; x += gridSize) {
@@ -295,11 +307,10 @@ export function NodeGraph({ script, onNodeClick, onNodePositionChange, onAutoLay
 
     const { nodeWidth, nodeHeight, nodeRadius } = NODE_GRAPH;
 
-    // Get hovered node's connections for highlighting
     const hoveredNode = hoveredNodeId ? nodes.find(n => n.id === hoveredNodeId) : null;
     const highlightedConnections = new Set(hoveredNode?.connections || []);
 
-    // Draw connections (non-highlighted first, then highlighted on top)
+    // Draw connections
     const drawConnection = (node: InkNode, targetId: string, highlighted: boolean) => {
       const target = nodes.find(n => n.id === targetId);
       if (!target) return;
@@ -314,7 +325,7 @@ export function NodeGraph({ script, onNodeClick, onNodePositionChange, onAutoLay
         target.x, target.y + nodeHeight / 2
       );
 
-      ctx.strokeStyle = highlighted ? '#6366f1' : '#cbd5e1';
+      ctx.strokeStyle = highlighted ? theme.connectionHighlight : theme.connectionDefault;
       ctx.lineWidth = highlighted ? 3 : 2;
       ctx.stroke();
 
@@ -330,7 +341,7 @@ export function NodeGraph({ script, onNodeClick, onNodePositionChange, onAutoLay
       ctx.moveTo(-8, -4);
       ctx.lineTo(0, 0);
       ctx.lineTo(-8, 4);
-      ctx.strokeStyle = highlighted ? '#6366f1' : '#cbd5e1';
+      ctx.strokeStyle = highlighted ? theme.connectionHighlight : theme.connectionDefault;
       ctx.lineWidth = highlighted ? 2 : 1;
       ctx.stroke();
       ctx.restore();
@@ -360,20 +371,20 @@ export function NodeGraph({ script, onNodeClick, onNodePositionChange, onAutoLay
       const isConnectedToHovered = highlightedConnections.has(node.id);
 
       if (isActive) {
-        ctx.fillStyle = '#f0fdf4';
-        ctx.strokeStyle = '#22c55e';
+        ctx.fillStyle = theme.nodeActive.fill;
+        ctx.strokeStyle = theme.nodeActive.stroke;
         ctx.lineWidth = 2;
       } else if (isHovered) {
-        ctx.fillStyle = '#eef2ff';
-        ctx.strokeStyle = '#6366f1';
+        ctx.fillStyle = theme.nodeHover.fill;
+        ctx.strokeStyle = theme.nodeHover.stroke;
         ctx.lineWidth = 2;
       } else if (isConnectedToHovered) {
-        ctx.fillStyle = '#f5f3ff';
-        ctx.strokeStyle = '#a5b4fc';
+        ctx.fillStyle = theme.nodeConnected.fill;
+        ctx.strokeStyle = theme.nodeConnected.stroke;
         ctx.lineWidth = 2;
       } else {
-        ctx.fillStyle = node.isStart ? '#f1f5f9' : '#ffffff';
-        ctx.strokeStyle = '#e2e8f0';
+        ctx.fillStyle = node.isStart ? theme.nodeStart : theme.nodeDefault;
+        ctx.strokeStyle = theme.nodeBorder;
         ctx.lineWidth = 1;
       }
 
@@ -382,14 +393,15 @@ export function NodeGraph({ script, onNodeClick, onNodePositionChange, onAutoLay
       ctx.fill();
       ctx.stroke();
 
-      ctx.fillStyle = isActive ? '#166534' : isHovered ? '#4338ca' : '#0f172a';
+      // Node text
+      ctx.fillStyle = isActive ? theme.textActive : isHovered ? theme.textHover : theme.textDefault;
       ctx.font = (isActive || isHovered) ? '600 13px Inter, system-ui, sans-serif' : '500 13px Inter, system-ui, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(node.name, node.x + nodeWidth / 2, node.y + nodeHeight / 2);
 
       // Connection dots
-      ctx.fillStyle = isActive ? '#22c55e' : isHovered || isConnectedToHovered ? '#6366f1' : '#cbd5e1';
+      ctx.fillStyle = isActive ? theme.dotActive : isHovered || isConnectedToHovered ? theme.dotHover : theme.dotDefault;
       ctx.beginPath();
       ctx.arc(node.x + nodeWidth, node.y + nodeHeight / 2, 4, 0, Math.PI * 2);
       ctx.fill();
@@ -400,7 +412,7 @@ export function NodeGraph({ script, onNodeClick, onNodePositionChange, onAutoLay
     }
 
     ctx.restore();
-  }, [nodes, transform, canvasSize, activeKnot, hoveredNodeId]);
+  }, [nodes, transform, canvasSize, activeKnot, hoveredNodeId, theme]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -463,11 +475,9 @@ export function NodeGraph({ script, onNodeClick, onNodePositionChange, onAutoLay
   }, [getNodeAtPosition]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    // Update hover state
     const nodeUnderMouse = getNodeAtPosition(e.clientX, e.clientY);
     setHoveredNodeId(nodeUnderMouse?.id ?? null);
 
-    // Update cursor
     const container = containerRef.current;
     if (container) {
       container.style.cursor = nodeUnderMouse ? 'pointer' : 'grab';
@@ -475,7 +485,6 @@ export function NodeGraph({ script, onNodeClick, onNodePositionChange, onAutoLay
 
     if (dragRef.current.type === 'none') return;
 
-    // Update cursor during drag
     if (container) {
       container.style.cursor = dragRef.current.type === 'node' ? 'grabbing' : 'grabbing';
     }
