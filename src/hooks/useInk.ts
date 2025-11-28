@@ -46,11 +46,6 @@ export function useInk() {
         return null;
       }
 
-      const warnings = errors.filter(e => e.type === 'warning');
-      if (warnings.length > 0) {
-        console.warn('Ink warnings:', warnings.map(w => w.message).join('\n'));
-      }
-
       return story;
     } catch (e: unknown) {
       if (errors.length > 0) {
