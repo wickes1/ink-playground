@@ -5,6 +5,7 @@ import { NODE_GRAPH } from '../constants';
 interface NodeGraphProps {
   script: string;
   onNodeClick?: (knotName: string) => void;
+  activeKnot?: string | null;
 }
 
 interface InkNode {
@@ -68,7 +69,7 @@ function parseInkScript(script: string): InkNode[] {
   }));
 }
 
-export function NodeGraph({ script, onNodeClick }: NodeGraphProps) {
+export function NodeGraph({ script, onNodeClick, activeKnot }: NodeGraphProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
@@ -174,23 +175,31 @@ export function NodeGraph({ script, onNodeClick }: NodeGraphProps) {
 
     // Draw nodes
     for (const node of nodes) {
-      ctx.fillStyle = node.isStart ? '#f1f5f9' : '#ffffff';
-      ctx.strokeStyle = '#e2e8f0';
-      ctx.lineWidth = 1;
+      const isActive = activeKnot === node.id;
+
+      if (isActive) {
+        ctx.fillStyle = '#f0fdf4';
+        ctx.strokeStyle = '#22c55e';
+        ctx.lineWidth = 2;
+      } else {
+        ctx.fillStyle = node.isStart ? '#f1f5f9' : '#ffffff';
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 1;
+      }
 
       ctx.beginPath();
       ctx.roundRect(node.x, node.y, nodeWidth, nodeHeight, nodeRadius);
       ctx.fill();
       ctx.stroke();
 
-      ctx.fillStyle = '#0f172a';
-      ctx.font = '500 13px Inter, system-ui, sans-serif';
+      ctx.fillStyle = isActive ? '#166534' : '#0f172a';
+      ctx.font = isActive ? '600 13px Inter, system-ui, sans-serif' : '500 13px Inter, system-ui, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(node.name, node.x + nodeWidth / 2, node.y + nodeHeight / 2);
 
       // Connection dots
-      ctx.fillStyle = '#cbd5e1';
+      ctx.fillStyle = isActive ? '#22c55e' : '#cbd5e1';
       ctx.beginPath();
       ctx.arc(node.x + nodeWidth, node.y + nodeHeight / 2, 4, 0, Math.PI * 2);
       ctx.fill();
@@ -201,7 +210,7 @@ export function NodeGraph({ script, onNodeClick }: NodeGraphProps) {
     }
 
     ctx.restore();
-  }, [nodes, transform, canvasSize]);
+  }, [nodes, transform, canvasSize, activeKnot]);
 
   useEffect(() => {
     const container = containerRef.current;

@@ -9,6 +9,7 @@ interface Props {
   onChange: (value: string) => void;
   onRun: () => void;
   readOnly?: boolean;
+  activeKnot?: string | null;
 }
 
 export interface EditorHandle {
@@ -63,10 +64,11 @@ function setupInkLanguage(monaco: Monaco) {
 }
 
 export const Editor = forwardRef<EditorHandle, Props>(function Editor(
-  { value, onChange, onRun, readOnly = false },
+  { value, onChange, onRun, readOnly = false, activeKnot },
   ref
 ) {
   const editorRef = useRef<MonacoEditor | null>(null);
+  const decorationsRef = useRef<string[]>([]);
 
   useImperativeHandle(ref, () => ({
     goToKnot(knotName: string) {
@@ -101,6 +103,51 @@ export const Editor = forwardRef<EditorHandle, Props>(function Editor(
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [onRun]);
+
+  // Highlight and scroll to active knot during playback
+  useEffect(() => {
+    const editor = editorRef.current;
+    if (!editor || !activeKnot) {
+      // Clear decorations if no active knot
+      if (editor && decorationsRef.current.length > 0) {
+        decorationsRef.current = editor.deltaDecorations(decorationsRef.current, []);
+      }
+      return;
+    }
+
+    const model = editor.getModel();
+    if (!model) return;
+
+    const knotRegex = new RegExp(`^===\\s*${activeKnot}\\s*===?`);
+    const lines = model.getLinesContent();
+
+    for (let i = 0; i < lines.length; i++) {
+      if (knotRegex.test(lines[i])) {
+        const lineNumber = i + 1;
+
+        // Scroll to the knot line
+        editor.revealLineInCenter(lineNumber);
+
+        // Add decoration for the active knot line
+        decorationsRef.current = editor.deltaDecorations(decorationsRef.current, [
+          {
+            range: {
+              startLineNumber: lineNumber,
+              startColumn: 1,
+              endLineNumber: lineNumber,
+              endColumn: model.getLineMaxColumn(lineNumber),
+            },
+            options: {
+              isWholeLine: true,
+              className: 'active-knot-line',
+              glyphMarginClassName: 'active-knot-glyph',
+            },
+          },
+        ]);
+        break;
+      }
+    }
+  }, [activeKnot]);
 
   return (
     <div className="editor">

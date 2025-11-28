@@ -87,7 +87,7 @@ export default function App() {
               <Editor ref={editorRef} value={code} onChange={setCode} onRun={handleRun} />
             </Resizable>
             <div className="flex-1 h-full overflow-hidden bg-slate-50">
-              <NodeGraph script={code} onNodeClick={handleNodeClick} />
+              <NodeGraph script={code} onNodeClick={handleNodeClick} activeKnot={state.currentKnot} />
             </div>
           </div>
         ) : (
@@ -111,10 +111,10 @@ export default function App() {
                   handleClasses={{ bottom: RESIZABLE_HANDLE_CLASS.horizontal }}
                   className="flex flex-col border-b border-slate-200"
                 >
-                  <Editor ref={editorRef} value={code} onChange={setCode} onRun={handleRun} readOnly />
+                  <Editor ref={editorRef} value={code} onChange={setCode} onRun={handleRun} readOnly activeKnot={state.currentKnot} />
                 </Resizable>
                 <div className="flex-1 overflow-hidden bg-slate-50">
-                  <NodeGraph script={code} onNodeClick={handleNodeClick} />
+                  <NodeGraph script={code} onNodeClick={handleNodeClick} activeKnot={state.currentKnot} />
                 </div>
               </div>
             </Resizable>
