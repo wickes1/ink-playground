@@ -7,6 +7,7 @@ interface Props {
   onChange: (value: string) => void;
   onRun: () => void;
   isRunning: boolean;
+  readOnly?: boolean;
 }
 
 function setupInkLanguage(monaco: Monaco) {
@@ -36,25 +37,27 @@ function setupInkLanguage(monaco: Monaco) {
     }
   });
 
-  monaco.editor.defineTheme('ink', {
+  monaco.editor.defineTheme('ink-light', {
     base: 'vs',
     inherit: true,
     rules: [
-      { token: 'keyword', foreground: '171717', fontStyle: 'bold' },
-      { token: 'string', foreground: '059669' },
-      { token: 'number', foreground: '2563eb' },
-      { token: 'comment', foreground: 'a3a3a3', fontStyle: 'italic' },
-      { token: 'variable', foreground: '7c3aed' }
+      { token: 'keyword', foreground: '5a6e55', fontStyle: 'bold' },
+      { token: 'string', foreground: '7a9973' },
+      { token: 'number', foreground: '8b7355' },
+      { token: 'comment', foreground: 'b5a99a', fontStyle: 'italic' },
+      { token: 'variable', foreground: '8b7355' }
     ],
     colors: {
       'editor.background': '#fafafa',
-      'editor.lineHighlightBackground': '#f5f5f5',
-      'editorLineNumber.foreground': '#d4d4d4'
+      'editor.lineHighlightBackground': '#f5f0eb',
+      'editorLineNumber.foreground': '#c4b9aa',
+      'editorLineNumber.activeForeground': '#8b7355',
+      'editor.selectionBackground': '#e5ddd4'
     }
   });
 }
 
-export function Editor({ value, onChange, onRun, isRunning }: Props) {
+export function Editor({ value, onChange, onRun, isRunning, readOnly = false }: Props) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
@@ -67,22 +70,27 @@ export function Editor({ value, onChange, onRun, isRunning }: Props) {
   }, [onRun]);
 
   return (
-    <div className="flex flex-col h-full border-r border-border">
+    <div className="editor">
       <div className="panel-header">
-        <span className="panel-title">Editor</span>
-        <button onClick={onRun} disabled={isRunning} className="btn btn-primary">
-          <Play size={14} />
-          {isRunning ? 'Running...' : 'Run'}
-        </button>
+        <div className="panel-header-left">
+          <span className="panel-title">Editor</span>
+          {readOnly && <span className="badge badge-muted">Read-only</span>}
+        </div>
+        {!readOnly && (
+          <button onClick={onRun} disabled={isRunning} className="btn btn-primary btn-sm">
+            <Play size={12} />
+            {isRunning ? 'Running...' : 'Run'}
+          </button>
+        )}
       </div>
 
-      <div className="flex-1">
+      <div className="editor-content">
         <MonacoEditor
           height="100%"
           defaultLanguage="ink"
-          theme="ink"
+          theme="ink-light"
           value={value}
-          onChange={v => onChange(v || '')}
+          onChange={v => !readOnly && onChange(v || '')}
           beforeMount={setupInkLanguage}
           options={{
             fontSize: 13,
@@ -93,7 +101,10 @@ export function Editor({ value, onChange, onRun, isRunning }: Props) {
             padding: { top: 12 },
             lineNumbers: 'on',
             folding: false,
-            glyphMargin: false
+            glyphMargin: false,
+            readOnly,
+            domReadOnly: readOnly,
+            renderLineHighlight: readOnly ? 'none' : 'line'
           }}
         />
       </div>
