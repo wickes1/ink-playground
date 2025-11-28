@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import type { Story } from 'inkjs/full';
 import type { StoryState, StoryChoice, StoryLine } from '../types';
+import { LINE_DELAY_MS } from '../constants';
 
 const INITIAL: StoryState = {
   story: null,
@@ -10,15 +11,14 @@ const INITIAL: StoryState = {
   currentKnot: null,
   variables: {},
   isEnded: false,
-  error: null
+  error: null,
 };
-
-const LINE_DELAY = 400;
 
 function getVariables(story: Story): Record<string, unknown> {
   const vars: Record<string, unknown> = {};
-  // @ts-ignore
-  const globals = story.variablesState?._globalVariables;
+  // Access private inkjs internals - types are incomplete
+  const variablesState = story.variablesState as unknown as { _globalVariables?: Map<string, unknown> };
+  const globals = variablesState?._globalVariables;
   if (globals) {
     for (const key of globals.keys()) {
       vars[key] = story.variablesState.$(key);
@@ -29,8 +29,9 @@ function getVariables(story: Story): Record<string, unknown> {
 
 function getCurrentKnot(story: Story): string | null {
   try {
-    // @ts-ignore
-    const path = story.state?.currentPointer?.path;
+    // Access private inkjs internals - types are incomplete
+    const storyState = story.state as { currentPointer?: { path?: { toString(): string } } };
+    const path = storyState?.currentPointer?.path;
     if (path) {
       const pathStr = path.toString();
       const match = pathStr.match(/^([^.]+)/);
@@ -48,15 +49,13 @@ export function useInkRunner() {
   const timerRef = useRef<number | null>(null);
   const lastKnotRef = useRef<string | null>(null);
 
-  // Process pending lines one at a time, stop at knot change
   useEffect(() => {
     if (state.pendingLines.length === 0) return;
 
     const nextLine = state.pendingLines[0];
 
-    // If knot changed, wait for user to click continue
     if (lastKnotRef.current !== null && nextLine.knot !== null && nextLine.knot !== lastKnotRef.current) {
-      return; // Don't auto-advance, wait for continue
+      return;
     }
 
     timerRef.current = window.setTimeout(() => {
@@ -70,23 +69,22 @@ export function useInkRunner() {
           ...s,
           lines: [...s.lines, line],
           pendingLines: remaining,
-          currentKnot: line.knot || s.currentKnot
+          currentKnot: line.knot || s.currentKnot,
         };
       });
-    }, LINE_DELAY);
+    }, LINE_DELAY_MS);
 
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, [state.pendingLines, state.lines]);
 
-  // Show choices when pending lines are done
   useEffect(() => {
     if (state.pendingLines.length === 0 && state.story) {
       const story = state.story;
       const choices: StoryChoice[] = (story.currentChoices || []).map(c => ({
         index: c.index,
-        text: c.text
+        text: c.text,
       }));
       const isEnded = !story.canContinue && choices.length === 0;
 
@@ -119,7 +117,7 @@ export function useInkRunner() {
         choices: [],
         variables: getVariables(story),
         isEnded: false,
-        error: null
+        error: null,
       }));
     } catch (e) {
       setState(s => ({ ...s, error: (e as Error).message }));
@@ -127,7 +125,6 @@ export function useInkRunner() {
   }, []);
 
   const continueToNextKnot = useCallback(() => {
-    // User clicked continue, allow the next line to show
     if (state.pendingLines.length === 0) return;
 
     const nextLine = state.pendingLines[0];
@@ -139,7 +136,7 @@ export function useInkRunner() {
         ...s,
         lines: [...s.lines, line],
         pendingLines: remaining,
-        currentKnot: line.knot || s.currentKnot
+        currentKnot: line.knot || s.currentKnot,
       };
     });
   }, [state.pendingLines]);

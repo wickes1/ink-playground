@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { Minus, Plus, RotateCcw } from 'lucide-react';
+import { NODE_GRAPH } from '../constants';
 
 interface NodeGraphProps {
   script: string;
-  activeKnot: string | null;
 }
 
 interface InkNode {
@@ -12,17 +12,16 @@ interface InkNode {
   x: number;
   y: number;
   connections: string[];
-  type: 'knot' | 'stitch' | 'start';
+  isStart: boolean;
 }
 
 function parseInkScript(script: string): InkNode[] {
   const lines = script.split('\n');
-  const nodes: InkNode[] = [];
   const knotRegex = /^===\s*(\w+)\s*===?$/;
   const divertRegex = /->\s*(\w+)/g;
 
   let currentKnot: string | null = null;
-  const knotDiverts: Map<string, Set<string>> = new Map();
+  const knotDiverts = new Map<string, Set<string>>();
 
   for (const line of lines) {
     const knotMatch = line.match(knotRegex);
@@ -46,46 +45,37 @@ function parseInkScript(script: string): InkNode[] {
   }
 
   const knotNames = Array.from(knotDiverts.keys());
-  const cols = Math.ceil(Math.sqrt(knotNames.length));
-
-  knotNames.forEach((name, index) => {
-    const col = index % cols;
-    const row = Math.floor(index / cols);
-    nodes.push({
-      id: name,
-      name,
-      x: 100 + col * 180,
-      y: 80 + row * 100,
-      connections: Array.from(knotDiverts.get(name) || []),
-      type: index === 0 ? 'start' : 'knot'
-    });
-  });
-
-  if (nodes.length === 0) {
-    nodes.push({
+  if (knotNames.length === 0) {
+    return [{
       id: 'start',
       name: 'Start',
       x: 150,
       y: 100,
       connections: [],
-      type: 'start'
-    });
+      isStart: true,
+    }];
   }
 
-  return nodes;
+  const cols = Math.ceil(Math.sqrt(knotNames.length));
+  return knotNames.map((name, index) => ({
+    id: name,
+    name,
+    x: NODE_GRAPH.startX + (index % cols) * NODE_GRAPH.spacingX,
+    y: NODE_GRAPH.startY + Math.floor(index / cols) * NODE_GRAPH.spacingY,
+    connections: Array.from(knotDiverts.get(name) || []),
+    isStart: index === 0,
+  }));
 }
 
-export function NodeGraph({ script, activeKnot }: NodeGraphProps) {
+export function NodeGraph({ script }: NodeGraphProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
-
   const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
   const dragRef = useRef({ isDragging: false, lastX: 0, lastY: 0 });
 
   const nodes = useMemo(() => parseInkScript(script), [script]);
 
-  // Handle canvas resize with ResizeObserver
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -102,7 +92,6 @@ export function NodeGraph({ script, activeKnot }: NodeGraphProps) {
     return () => observer.disconnect();
   }, []);
 
-  // Draw canvas
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || canvasSize.width === 0 || canvasSize.height === 0) return;
@@ -117,12 +106,10 @@ export function NodeGraph({ script, activeKnot }: NodeGraphProps) {
     canvas.style.height = `${canvasSize.height}px`;
     ctx.scale(dpr, dpr);
 
-    // Clear
     ctx.fillStyle = '#f8fafc';
     ctx.fillRect(0, 0, canvasSize.width, canvasSize.height);
 
-    // Draw grid
-    const gridSize = 24 * transform.scale;
+    const gridSize = NODE_GRAPH.gridSize * transform.scale;
     const offsetX = transform.x % gridSize;
     const offsetY = transform.y % gridSize;
 
@@ -140,25 +127,26 @@ export function NodeGraph({ script, activeKnot }: NodeGraphProps) {
     }
     ctx.stroke();
 
-    // Apply transform
     ctx.save();
     ctx.translate(transform.x, transform.y);
     ctx.scale(transform.scale, transform.scale);
 
+    const { nodeWidth, nodeHeight, nodeRadius } = NODE_GRAPH;
+
     // Draw connections
-    nodes.forEach(node => {
-      node.connections.forEach(targetId => {
+    for (const node of nodes) {
+      for (const targetId of node.connections) {
         const target = nodes.find(n => n.id === targetId);
-        if (!target) return;
+        if (!target) continue;
 
         ctx.beginPath();
-        ctx.moveTo(node.x + 70, node.y + 22);
+        ctx.moveTo(node.x + nodeWidth, node.y + nodeHeight / 2);
 
-        const midX = (node.x + target.x) / 2 + 70;
+        const midX = (node.x + target.x) / 2 + nodeWidth / 2;
         ctx.bezierCurveTo(
-          midX, node.y + 22,
-          midX, target.y + 22,
-          target.x, target.y + 22
+          midX, node.y + nodeHeight / 2,
+          midX, target.y + nodeHeight / 2,
+          target.x, target.y + nodeHeight / 2
         );
 
         ctx.strokeStyle = '#cbd5e1';
@@ -166,9 +154,12 @@ export function NodeGraph({ script, activeKnot }: NodeGraphProps) {
         ctx.stroke();
 
         // Arrow head
-        const angle = Math.atan2(target.y + 22 - node.y - 22, target.x - node.x - 70);
+        const angle = Math.atan2(
+          target.y - node.y,
+          target.x - node.x - nodeWidth
+        );
         ctx.save();
-        ctx.translate(target.x, target.y + 22);
+        ctx.translate(target.x, target.y + nodeHeight / 2);
         ctx.rotate(angle);
         ctx.beginPath();
         ctx.moveTo(-8, -4);
@@ -177,55 +168,40 @@ export function NodeGraph({ script, activeKnot }: NodeGraphProps) {
         ctx.strokeStyle = '#cbd5e1';
         ctx.stroke();
         ctx.restore();
-      });
-    });
+      }
+    }
 
     // Draw nodes
-    nodes.forEach(node => {
-      const isActive = activeKnot === node.id;
-      const isStart = node.type === 'start';
-
-      const width = 140;
-      const height = 44;
-      const radius = 8;
-
-      if (isActive) {
-        ctx.shadowBlur = 12;
-        ctx.shadowColor = 'rgba(99, 102, 241, 0.3)';
-      }
-
-      ctx.fillStyle = isActive ? '#6366f1' : isStart ? '#f1f5f9' : '#ffffff';
-      ctx.strokeStyle = isActive ? '#4f46e5' : '#e2e8f0';
-      ctx.lineWidth = isActive ? 2 : 1;
+    for (const node of nodes) {
+      ctx.fillStyle = node.isStart ? '#f1f5f9' : '#ffffff';
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 1;
 
       ctx.beginPath();
-      ctx.roundRect(node.x, node.y, width, height, radius);
+      ctx.roundRect(node.x, node.y, nodeWidth, nodeHeight, nodeRadius);
       ctx.fill();
       ctx.stroke();
 
-      ctx.shadowBlur = 0;
-
-      ctx.fillStyle = isActive ? '#ffffff' : '#0f172a';
+      ctx.fillStyle = '#0f172a';
       ctx.font = '500 13px Inter, system-ui, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(node.name, node.x + width / 2, node.y + height / 2);
+      ctx.fillText(node.name, node.x + nodeWidth / 2, node.y + nodeHeight / 2);
 
       // Connection dots
-      ctx.fillStyle = isActive ? '#4f46e5' : '#cbd5e1';
+      ctx.fillStyle = '#cbd5e1';
       ctx.beginPath();
-      ctx.arc(node.x + width, node.y + height / 2, 4, 0, Math.PI * 2);
+      ctx.arc(node.x + nodeWidth, node.y + nodeHeight / 2, 4, 0, Math.PI * 2);
       ctx.fill();
 
       ctx.beginPath();
-      ctx.arc(node.x, node.y + height / 2, 4, 0, Math.PI * 2);
+      ctx.arc(node.x, node.y + nodeHeight / 2, 4, 0, Math.PI * 2);
       ctx.fill();
-    });
+    }
 
     ctx.restore();
-  }, [nodes, activeKnot, transform, canvasSize]);
+  }, [nodes, transform, canvasSize]);
 
-  // Wheel zoom
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -263,7 +239,6 @@ export function NodeGraph({ script, activeKnot }: NodeGraphProps) {
   }, []);
 
   const resetView = () => setTransform({ x: 0, y: 0, scale: 1 });
-
   const zoomOut = () => setTransform(p => ({ ...p, scale: Math.max(0.25, p.scale - 0.1) }));
   const zoomIn = () => setTransform(p => ({ ...p, scale: Math.min(3, p.scale + 0.1) }));
 
