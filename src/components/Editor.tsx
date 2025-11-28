@@ -1,83 +1,42 @@
-import { useRef, useEffect } from 'react';
+import { useEffect } from 'react';
 import MonacoEditor, { type Monaco } from '@monaco-editor/react';
 import { Play } from 'lucide-react';
 
-interface EditorProps {
+interface Props {
   value: string;
   onChange: (value: string) => void;
-  onCompile: () => void;
-  isParsing: boolean;
+  onRun: () => void;
+  isRunning: boolean;
 }
 
-function registerInkLanguage(monaco: Monaco) {
+function setupInkLanguage(monaco: Monaco) {
   monaco.languages.register({ id: 'ink' });
-
-  monaco.languages.setLanguageConfiguration('ink', {
-    comments: {
-      lineComment: '//',
-      blockComment: ['/*', '*/']
-    },
-    brackets: [
-      ['{', '}'],
-      ['[', ']'],
-      ['(', ')']
-    ],
-    autoClosingPairs: [
-      { open: '{', close: '}' },
-      { open: '[', close: ']' },
-      { open: '(', close: ')' },
-      { open: '"', close: '"' }
-    ]
-  });
 
   monaco.languages.setMonarchTokensProvider('ink', {
     defaultToken: '',
-    tokenPostfix: '.ink',
-
-    keywords: [
-      'VAR', 'CONST', 'LIST', 'INCLUDE', 'EXTERNAL',
-      'true', 'false', 'not', 'and', 'or', 'mod',
-      'return', 'done', 'END', 'DONE'
-    ],
-
+    keywords: ['VAR', 'CONST', 'LIST', 'INCLUDE', 'EXTERNAL', 'true', 'false', 'not', 'and', 'or', 'return', 'done', 'END'],
     tokenizer: {
       root: [
-        [/^===\s*\w+\s*===/, 'keyword'],
-        [/^==\s*\w+\s*==/, 'keyword'],
-        [/^=\s*\w+/, 'keyword'],
-        [/->/, 'keyword'],
-        [/<-/, 'keyword'],
+        [/^={1,3}\s*\w+/, 'keyword'],
+        [/->|<-/, 'keyword'],
         [/^\s*[*+]\s/, 'keyword'],
-        [/^\s*-\s/, 'comment'],
-        [/#[^\n]*/, 'comment'],
         [/\/\/.*$/, 'comment'],
-        [/\/\*/, 'comment', '@comment'],
-        [/\{/, 'delimiter', '@inlineLogic'],
-        [/"([^"\\]|\\.)*"/, 'string'],
+        [/#[^\n]*/, 'comment'],
+        [/\{/, 'delimiter', '@logic'],
+        [/"[^"]*"/, 'string'],
         [/\d+/, 'number'],
-        [/[a-zA-Z_]\w*/, {
-          cases: {
-            '@keywords': 'keyword',
-            '@default': 'identifier'
-          }
-        }]
+        [/[a-zA-Z_]\w*/, { cases: { '@keywords': 'keyword', '@default': '' } }]
       ],
-      comment: [
-        [/[^\/*]+/, 'comment'],
-        [/\*\//, 'comment', '@pop'],
-        [/[\/*]/, 'comment']
-      ],
-      inlineLogic: [
+      logic: [
         [/\}/, 'delimiter', '@pop'],
-        [/[|:]/, 'delimiter'],
         [/[a-zA-Z_]\w*/, 'variable'],
         [/\d+/, 'number'],
-        [/"([^"\\]|\\.)*"/, 'string']
+        [/"[^"]*"/, 'string']
       ]
     }
   });
 
-  monaco.editor.defineTheme('ink-minimal', {
+  monaco.editor.defineTheme('ink', {
     base: 'vs',
     inherit: true,
     rules: [
@@ -85,57 +44,35 @@ function registerInkLanguage(monaco: Monaco) {
       { token: 'string', foreground: '059669' },
       { token: 'number', foreground: '2563eb' },
       { token: 'comment', foreground: 'a3a3a3', fontStyle: 'italic' },
-      { token: 'variable', foreground: '7c3aed' },
-      { token: 'delimiter', foreground: '737373' }
+      { token: 'variable', foreground: '7c3aed' }
     ],
     colors: {
       'editor.background': '#fafafa',
-      'editor.foreground': '#171717',
       'editor.lineHighlightBackground': '#f5f5f5',
-      'editor.selectionBackground': '#e5e5e5',
-      'editorCursor.foreground': '#171717',
-      'editorLineNumber.foreground': '#d4d4d4',
-      'editorLineNumber.activeForeground': '#737373'
+      'editorLineNumber.foreground': '#d4d4d4'
     }
   });
 }
 
-export function Editor({ value, onChange, onCompile, isParsing }: EditorProps) {
-  const monacoRef = useRef<Monaco | null>(null);
-
+export function Editor({ value, onChange, onRun, isRunning }: Props) {
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
         e.preventDefault();
-        onCompile();
+        onRun();
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onCompile]);
-
-  const handleEditorWillMount = (monaco: Monaco) => {
-    monacoRef.current = monaco;
-    registerInkLanguage(monaco);
-  };
-
-  const stats = {
-    chars: value.length,
-    lines: value.split('\n').length,
-    words: value.trim() ? value.trim().split(/\s+/).length : 0
-  };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onRun]);
 
   return (
     <div className="flex flex-col h-full border-r border-border">
       <div className="panel-header">
         <span className="panel-title">Editor</span>
-        <button
-          onClick={onCompile}
-          disabled={isParsing}
-          className="btn btn-primary"
-        >
+        <button onClick={onRun} disabled={isRunning} className="btn btn-primary">
           <Play size={14} />
-          <span>{isParsing ? 'Running...' : 'Run'}</span>
+          {isRunning ? 'Running...' : 'Run'}
         </button>
       </div>
 
@@ -143,30 +80,26 @@ export function Editor({ value, onChange, onCompile, isParsing }: EditorProps) {
         <MonacoEditor
           height="100%"
           defaultLanguage="ink"
-          theme="ink-minimal"
+          theme="ink"
           value={value}
-          onChange={(v) => onChange(v || '')}
-          beforeMount={handleEditorWillMount}
+          onChange={v => onChange(v || '')}
+          beforeMount={setupInkLanguage}
           options={{
             fontSize: 13,
-            lineHeight: 20,
             fontFamily: "'JetBrains Mono', monospace",
             minimap: { enabled: false },
             scrollBeyondLastLine: false,
             wordWrap: 'on',
-            padding: { top: 12, bottom: 12 },
-            renderLineHighlight: 'line',
+            padding: { top: 12 },
             lineNumbers: 'on',
             folding: false,
-            glyphMargin: false,
-            lineDecorationsWidth: 0,
-            lineNumbersMinChars: 3
+            glyphMargin: false
           }}
         />
       </div>
 
       <div className="footer-stats">
-        {stats.chars} chars / {stats.lines} lines / {stats.words} words
+        {value.length} chars / {value.split('\n').length} lines
       </div>
     </div>
   );

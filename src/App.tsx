@@ -1,84 +1,49 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { Editor } from './components/Editor';
 import { Runner } from './components/Runner';
 import { useInk } from './hooks/useInk';
 import { useInkRunner } from './hooks/useInkRunner';
 
-const SAMPLE_FILES = [
-  { value: 'examples/hello-world.ink', label: 'Hello World' },
-  { value: 'examples/choices-demo.ink', label: 'Choices' },
-  { value: 'examples/variables-demo.ink', label: 'Variables' },
-  { value: 'examples/knots-demo.ink', label: 'Knots' },
-  { value: 'examples/advanced-demo.ink', label: 'Advanced' }
+const EXAMPLES = [
+  { path: 'examples/hello-world.ink', name: 'Hello World' },
+  { path: 'examples/choices-demo.ink', name: 'Choices' },
+  { path: 'examples/variables-demo.ink', name: 'Variables' },
+  { path: 'examples/knots-demo.ink', name: 'Knots' },
+  { path: 'examples/advanced-demo.ink', name: 'Advanced' }
 ];
 
 export default function App() {
-  const [editorContent, setEditorContent] = useState('');
+  const [code, setCode] = useState('');
   const { parse, isParsing } = useInk();
-  const { state: runnerState, start, makeChoice, resetStory } = useInkRunner();
+  const { state, start, makeChoice, reset } = useInkRunner();
 
-  const handleCompile = useCallback(() => {
-    const story = parse(editorContent);
-    if (story) {
-      start(story);
-    }
-  }, [editorContent, parse, start]);
+  const run = () => {
+    const story = parse(code);
+    if (story) start(story);
+  };
 
-  const handleLoadSample = useCallback(async (fileName: string) => {
-    if (!fileName) return;
-    try {
-      const response = await fetch(`./${fileName}`);
-      if (response.ok) {
-        const text = await response.text();
-        setEditorContent(text);
-      }
-    } catch (error) {
-      console.error('Error loading sample:', error);
-    }
-  }, []);
-
-  const hasStory = runnerState.story !== null;
+  const loadExample = async (path: string) => {
+    if (!path) return;
+    const res = await fetch(path);
+    if (res.ok) setCode(await res.text());
+  };
 
   return (
     <div className="h-screen flex flex-col">
       <header className="header">
-        <div className="header-title">
-          Ink Playground
-        </div>
-        <div className="header-controls">
-          <select
-            className="select"
-            onChange={(e) => handleLoadSample(e.target.value)}
-            defaultValue=""
-          >
-            <option value="" disabled>
-              Examples
-            </option>
-            {SAMPLE_FILES.map((file) => (
-              <option key={file.value} value={file.value}>
-                {file.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        <span className="header-title">Ink Playground</span>
+        <select className="select" onChange={e => loadExample(e.target.value)} defaultValue="">
+          <option value="" disabled>Examples</option>
+          {EXAMPLES.map(e => <option key={e.path} value={e.path}>{e.name}</option>)}
+        </select>
       </header>
 
       <main className="flex-1 flex overflow-hidden">
         <div className="flex-1">
-          <Editor
-            value={editorContent}
-            onChange={setEditorContent}
-            onCompile={handleCompile}
-            isParsing={isParsing}
-          />
+          <Editor value={code} onChange={setCode} onRun={run} isRunning={isParsing} />
         </div>
         <div className="flex-1">
-          <Runner
-            state={runnerState}
-            onChoice={makeChoice}
-            onReset={resetStory}
-            hasStory={hasStory}
-          />
+          <Runner state={state} onChoice={makeChoice} onReset={reset} />
         </div>
       </main>
     </div>
