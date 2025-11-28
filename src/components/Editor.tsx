@@ -8,8 +8,8 @@ interface Props {
   value: string;
   onChange: (value: string) => void;
   onRun: () => void;
-  readOnly?: boolean;
   activeKnot?: string | null;
+  hasUnsavedChanges?: boolean;
 }
 
 export interface EditorHandle {
@@ -64,7 +64,7 @@ function setupInkLanguage(monaco: Monaco) {
 }
 
 export const Editor = forwardRef<EditorHandle, Props>(function Editor(
-  { value, onChange, onRun, readOnly = false, activeKnot },
+  { value, onChange, onRun, activeKnot, hasUnsavedChanges = false },
   ref
 ) {
   const editorRef = useRef<MonacoEditor | null>(null);
@@ -154,7 +154,9 @@ export const Editor = forwardRef<EditorHandle, Props>(function Editor(
       <div className="panel-header">
         <div className="panel-header-left">
           <span className="panel-title">Editor</span>
-          {readOnly && <span className="badge badge-muted">Read-only</span>}
+          {hasUnsavedChanges && (
+            <span className="badge badge-warning">Modified - Press Restart to apply</span>
+          )}
         </div>
       </div>
 
@@ -164,7 +166,7 @@ export const Editor = forwardRef<EditorHandle, Props>(function Editor(
           defaultLanguage="ink"
           theme="ink-light"
           value={value}
-          onChange={v => !readOnly && onChange(v || '')}
+          onChange={v => onChange(v || '')}
           beforeMount={setupInkLanguage}
           onMount={editor => { editorRef.current = editor; }}
           options={{
@@ -177,9 +179,6 @@ export const Editor = forwardRef<EditorHandle, Props>(function Editor(
             lineNumbers: 'on',
             folding: false,
             glyphMargin: false,
-            readOnly,
-            domReadOnly: readOnly,
-            renderLineHighlight: readOnly ? 'none' : 'line',
             automaticLayout: true
           }}
         />

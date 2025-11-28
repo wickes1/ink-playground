@@ -11,6 +11,8 @@ import { EXAMPLES, RESIZABLE_HANDLE_STYLE, RESIZABLE_HANDLE_CLASS } from './cons
 export default function App() {
   const [code, setCode] = useState('');
   const [isRunning, setIsRunning] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const runningCodeRef = useRef<string>('');
   const { parse, isParsing, error, setError } = useInk();
   const { state, start, makeChoice, reset, continueToNextKnot, needsContinue } = useInkRunner();
   const editorRef = useRef<EditorHandle>(null);
@@ -23,13 +25,33 @@ export default function App() {
     const story = parse(code);
     if (story) {
       start(story);
+      runningCodeRef.current = code;
+      setHasUnsavedChanges(false);
       setIsRunning(true);
     }
   };
 
   const handleStop = () => {
     setIsRunning(false);
+    setHasUnsavedChanges(false);
     reset();
+  };
+
+  const handleCodeChange = (newCode: string) => {
+    setCode(newCode);
+    if (isRunning && newCode !== runningCodeRef.current) {
+      setHasUnsavedChanges(true);
+    }
+  };
+
+  const handleRestart = () => {
+    const story = parse(code);
+    if (story) {
+      reset();
+      start(story);
+      runningCodeRef.current = code;
+      setHasUnsavedChanges(false);
+    }
   };
 
   const loadExample = async (path: string) => {
@@ -38,6 +60,7 @@ export default function App() {
     if (res.ok) {
       setCode(await res.text());
       setIsRunning(false);
+      setHasUnsavedChanges(false);
     }
   };
 
@@ -50,16 +73,23 @@ export default function App() {
         </div>
 
         <div className="header-controls">
-          {isRunning ? (
-            <button onClick={handleStop} className="btn btn-control btn-stop">
-              Stop
+          <div className={`toggle-group ${!code.trim() || isParsing ? 'toggle-disabled' : ''}`}>
+            <button
+              onClick={handleStop}
+              disabled={!isRunning}
+              className={`toggle-btn ${!isRunning ? 'toggle-active' : ''}`}
+            >
+              Edit
             </button>
-          ) : (
-            <button onClick={handleRun} disabled={isParsing || !code.trim()} className="btn btn-control btn-run">
-              Start
+            <button
+              onClick={handleRun}
+              disabled={isRunning || isParsing || !code.trim()}
+              className={`toggle-btn ${isRunning ? 'toggle-active' : ''}`}
+            >
+              Play
             </button>
-          )}
-          <button onClick={reset} disabled={!isRunning} className="btn btn-control">
+          </div>
+          <button onClick={handleRestart} disabled={!isRunning} className="btn btn-control">
             Restart
           </button>
         </div>
@@ -84,7 +114,7 @@ export default function App() {
               handleClasses={{ right: RESIZABLE_HANDLE_CLASS.vertical }}
               className="flex flex-col border-r border-slate-200"
             >
-              <Editor ref={editorRef} value={code} onChange={setCode} onRun={handleRun} />
+              <Editor ref={editorRef} value={code} onChange={handleCodeChange} onRun={handleRun} />
             </Resizable>
             <div className="flex-1 h-full overflow-hidden bg-slate-50">
               <NodeGraph script={code} onNodeClick={handleNodeClick} activeKnot={state.currentKnot} />
@@ -111,7 +141,7 @@ export default function App() {
                   handleClasses={{ bottom: RESIZABLE_HANDLE_CLASS.horizontal }}
                   className="flex flex-col border-b border-slate-200"
                 >
-                  <Editor ref={editorRef} value={code} onChange={setCode} onRun={handleRun} readOnly activeKnot={state.currentKnot} />
+                  <Editor ref={editorRef} value={code} onChange={handleCodeChange} onRun={handleRestart} activeKnot={state.currentKnot} hasUnsavedChanges={hasUnsavedChanges} />
                 </Resizable>
                 <div className="flex-1 overflow-hidden bg-slate-50">
                   <NodeGraph script={code} onNodeClick={handleNodeClick} activeKnot={state.currentKnot} />
