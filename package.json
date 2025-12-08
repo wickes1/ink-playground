@@ -1,6 +1,6 @@
 {
   "name": "ink-playground",
-  "version": "0.1.0",
+  "version": "0.6.1",
   "description": "Ink Playground - Interactive Ink Script Editor",
   "main": "index.js",
   "scripts": {
@@ -26,19 +26,19 @@
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
     "inkjs": "^2.3.2",
-    "lucide-react": "^0.554.0",
+    "lucide-react": "^0.556.0",
     "re-resizable": "^6.11.2",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.17",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^4.7.0",
+    "@vitejs/plugin-react": "^5.1.2",
     "tailwindcss": "^4.1.17",
     "typescript": "^5.9.3",
-    "vite": "^7.2.4"
+    "vite": "^7.2.7"
   }
 }
