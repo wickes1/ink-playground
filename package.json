@@ -1,6 +1,6 @@
 {
   "name": "ink-playground",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "Ink Playground - Interactive Ink Script Editor",
   "main": "index.js",
   "scripts": {

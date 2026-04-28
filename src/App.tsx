@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { Resizable } from 're-resizable';
+import { Github } from 'lucide-react';
 import { Editor, type EditorHandle } from './components/Editor';
 import { Runner } from './components/Runner';
 import { NodeGraph } from './components/NodeGraph';
@@ -131,11 +132,22 @@ export default function App() {
         </div>
 
         <div className="header-right">
-          <ThemeSelector />
           <select className="select" onChange={e => loadExample(e.target.value)} defaultValue="">
             <option value="" disabled>Examples</option>
             {EXAMPLES.map(e => <option key={e.path} value={e.path}>{e.name}</option>)}
           </select>
+          <ThemeSelector />
+          <span className="header-divider" aria-hidden="true" />
+          <a
+            href="https://github.com/wickes1/ink-playground"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-icon"
+            title="View source on GitHub"
+            aria-label="View source on GitHub"
+          >
+            <Github size={16} />
+          </a>
         </div>
       </header>
 

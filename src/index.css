@@ -155,8 +155,15 @@ body {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 16px;
+  gap: 12px;
   flex: 1;
+}
+
+.header-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--color-border);
+  margin: 0 4px;
 }
 
 /* Buttons */
