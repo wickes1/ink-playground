@@ -20,9 +20,17 @@
     "react",
     "monaco-editor"
   ],
-  "author": "",
+  "author": "Wickes1",
   "license": "MIT",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wickes1/ink-playground.git"
+  },
+  "bugs": {
+    "url": "https://github.com/wickes1/ink-playground/issues"
+  },
+  "homepage": "https://ink.wickend.dev",
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
     "inkjs": "^2.3.2",
